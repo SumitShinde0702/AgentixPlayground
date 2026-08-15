@@ -10,7 +10,7 @@ function unauthorized() {
 export function assertGatewayAuth(req: Request): NextResponse | null {
   const expected = process.env.GATEWAY_API_KEY?.trim();
   if (!expected) return null;
-  const got = req.headers.get("x-secure-procure-key")?.trim();
+  const got = req.headers.get("x-gatex-key")?.trim();
   if (got !== expected) return unauthorized();
   return null;
 }

@@ -68,7 +68,7 @@ function highlightBash(line: string): ReactNode {
 export function Terminal({
   commands,
   outputs = {},
-  username = "procure",
+  username = "gatex",
   className,
   typingSpeed = 28,
   delayBetweenCommands = 700,
@@ -172,7 +172,7 @@ export function Terminal({
         <span className="size-2.5 rounded-full bg-[#febc2e]" />
         <span className="size-2.5 rounded-full bg-[#28c840]" />
         <span className="ml-3 mono text-[11px] text-white/40">
-          Secure-Procure — bash
+          GateX — bash
         </span>
       </div>
       <div
@@ -186,7 +186,7 @@ export function Terminal({
             return (
               <div key={idx} className="whitespace-pre-wrap break-all">
                 <span className="text-emerald-400/90">{username}</span>
-                <span className="text-white/35">@secure-procure</span>
+                <span className="text-white/35">@gatex</span>
                 <span className="text-white/35">:~$ </span>
                 {highlightBash(line.text)}
                 {!line.done ? (
@@ -207,7 +207,7 @@ export function Terminal({
         {!started ? (
           <div className="text-white/35">
             <span className="text-emerald-400/90">{username}</span>
-            <span>@secure-procure:~$ </span>
+            <span>@gatex:~$ </span>
             <span className="inline-block h-[1em] w-[0.55ch] animate-pulse bg-white/50 align-middle" />
           </div>
         ) : null}

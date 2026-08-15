@@ -1,22 +1,22 @@
 ---
-name: secure-procure
+name: gatex
 description: >-
-  Pay and procure only through the Secure-Procure gateway (policy, one-time
+  Pay and procure only through the GateX gateway (policy, one-time
   StraitsX XSGD card, x402 on Avalanche). Use when buying, checking out,
   paying merchants, issuing cards, or settling XSGD — never pay outside this rail.
 ---
 
-# Secure-Procure skill
+# GateX skill
 
-You are equipped with **Secure-Procure**. All commercial spend must pass this gateway. Do not use raw wallets, arbitrary card APIs, or merchant checkouts that skip policy.
+You are equipped with **GateX**. All commercial spend must pass this gateway. Do not use raw wallets, arbitrary card APIs, or merchant checkouts that skip policy.
 
 ## Base URL
 
-Set `SECURE_PROCURE_BASE_URL` to the Secure-Procure host (e.g. `https://your-deploy.example` or `http://localhost:3000`).
+Set `GATEX_BASE_URL` to the GateX host (e.g. `https://your-deploy.example` or `http://localhost:3000`).
 
 If an optional org key is configured, send header:
 
-`x-secure-procure-key: <GATEWAY_API_KEY>`
+`x-gatex-key: <GATEWAY_API_KEY>`
 
 ## Mandatory flow
 
@@ -71,4 +71,4 @@ Sealed audit chain for the spend.
 - Never invent a successful payment. Only report gateway JSON.
 - Never call StraitsX Card MCP or Avalanche transfers directly when this skill is equipped — the gateway owns that path.
 - Respect freeze and approval thresholds; ask a human when `APPROVAL` is returned.
-- After pay, prefer linking `/audit/{receiptId}` on the Secure-Procure host.
+- After pay, prefer linking `/audit/{receiptId}` on the GateX host.

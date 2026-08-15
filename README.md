@@ -1,4 +1,4 @@
-# Secure-Procure
+# GateX
 
 Agents that buy, without being hijacked.
 
@@ -27,7 +27,7 @@ Open [http://localhost:3000](http://localhost:3000) → **Set the rules** (`/con
 
 ## Equippable skill
 
-Download [`/skills/secure-procure/SKILL.md`](public/skills/secure-procure/SKILL.md) into `.cursor/skills/secure-procure/`. Equipped agents must call:
+Download [`/skills/gatex/SKILL.md`](public/skills/gatex/SKILL.md) into `.cursor/skills/gatex/`. Equipped agents must call:
 
 | Tool | Endpoint |
 | --- | --- |
@@ -36,12 +36,12 @@ Download [`/skills/secure-procure/SKILL.md`](public/skills/secure-procure/SKILL.
 | request_pay | `POST /api/gateway/pay` |
 | get_receipt | `GET /api/gateway/receipt/{id}` |
 
-Optional auth: `GATEWAY_API_KEY` + header `x-secure-procure-key`.
+Optional auth: `GATEWAY_API_KEY` + header `x-gatex-key`.
 
 ## Pitch
 
 0. **Controls** — connect treasury, set limits, freeze anytime.
-1. **Skill** — equip Secure-Procure; spend must hit your gateway.
+1. **Skill** — equip GateX; spend must hit your gateway.
 2. **Identity** — rogue DID blocked.
 3. **Injection** — CaMeL quarantine.
 4. **Execute** — one-time card → x402 → Avalanche.
@@ -58,7 +58,7 @@ See `.env.example`. Hackathon links: [`HACKATHON-LINKS.md`](HACKATHON-LINKS.md).
 | `AGENT_WALLET_ADDRESS` | Default treasury |
 | `AGENT_PRIVATE_KEY` | Fuji key for Card MCP EIP-3009 |
 | `GATEWAY_API_KEY` | Optional gateway auth |
-| `SECURE_PROCURE_BASE_URL` | Public base URL for skill consumers |
+| `GATEX_BASE_URL` | Public base URL for skill consumers |
 | `MERCHANT_WALLET_ADDRESS` | Merchant payTo |
 | `X402_NETWORK` | `eip155:43114` mainnet labeling |
 | `STRAITSX_CARD_MCP_URL` | Card MCP SSE |

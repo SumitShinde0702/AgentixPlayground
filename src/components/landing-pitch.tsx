@@ -19,7 +19,7 @@ const pitch = [
   {
     id: "skill",
     title: "Skill",
-    body: "Yes — a skill for your own AI. Equip Secure-Procure; outside agents settle through your gateway — policy first, then one-time card.",
+    body: "Yes — a skill for your own AI. Equip GateX; outside agents settle through your gateway — policy first, then one-time card.",
   },
   {
     id: "identity",
@@ -149,7 +149,7 @@ function ImpersonationFix() {
   return (
     <div>
       <p className="mono text-[11px] uppercase tracking-[0.16em] text-[var(--paper)]/45">
-        Secure-Procure · identity rail
+        GateX · identity rail
       </p>
       <p className="display mt-3 text-[clamp(1.25rem,2vw,1.55rem)] leading-snug text-[var(--paper)]">
         Wrong key never reaches pay
@@ -253,7 +253,7 @@ export function LandingPitch() {
               The gaps. Closed on this rail.
             </ScrollReveal>
             <p className="mt-6 max-w-[44ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
-              Industry leaves these open. Secure-Procure closes the spend path.
+              Industry leaves these open. GateX closes the spend path.
             </p>
 
             <div className="mt-14">
@@ -316,7 +316,7 @@ export function LandingPitch() {
                   Yes — a skill for your own AI.
                 </ScrollReveal>
                 <p className="mt-6 max-w-[36ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
-                  Drop Secure-Procure into Cursor (or any agent that reads skills).
+                  Drop GateX into Cursor (or any agent that reads skills).
                   Their buys hit your gateway — check, pay, receipt — so spend never
                   skips your policy.
                 </p>

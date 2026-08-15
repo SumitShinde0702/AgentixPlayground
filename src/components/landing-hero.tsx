@@ -43,7 +43,7 @@ export function LandingHero() {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="display max-w-[11ch] text-[clamp(3.4rem,8vw,8.2rem)] text-[var(--paper)]"
         >
-          Secure-Procure
+          GateX
         </motion.p>
         <motion.p
           initial={{ opacity: 0, y: 10 }}

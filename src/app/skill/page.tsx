@@ -13,14 +13,14 @@ export default function SkillPage() {
           Yes — a skill for your own AI.
         </h1>
         <p className="mt-6 max-w-[42ch] text-[17px] leading-relaxed text-[var(--ink)]/70">
-          Drop Secure-Procure into Cursor (or any agent that reads skills). When
-          it buys, it must call your gateway — policy, one-time XSGD card, sealed
-          receipt. No bypass.
+          Drop GateX into Cursor (or any agent that reads skills). When it buys,
+          it must call your gateway — policy, one-time XSGD card, sealed receipt.
+          No bypass.
         </p>
 
         <div className="mt-10 flex flex-wrap gap-4">
           <a
-            href="/skills/secure-procure/SKILL.md"
+            href="/skills/gatex/SKILL.md"
             download="SKILL.md"
             className="border border-[var(--ink)] bg-[var(--ink)] px-5 py-3 text-[12px] uppercase tracking-[0.14em] text-[var(--paper)]"
           >
@@ -41,23 +41,20 @@ export default function SkillPage() {
           <ol className="mt-4 list-decimal space-y-3 pl-5 text-[15px] leading-relaxed text-[var(--ink)]/80">
             <li>
               Create{" "}
-              <code className="mono text-[13px]">
-                .cursor/skills/secure-procure/
-              </code>
+              <code className="mono text-[13px]">.cursor/skills/gatex/</code>
             </li>
             <li>
               Save the downloaded file as{" "}
               <code className="mono text-[13px]">SKILL.md</code>
             </li>
             <li>
-              Set{" "}
-              <code className="mono text-[13px]">SECURE_PROCURE_BASE_URL</code>{" "}
-              to this host
+              Set <code className="mono text-[13px]">GATEX_BASE_URL</code> to
+              this host
             </li>
             <li>
               Optional:{" "}
               <code className="mono text-[13px]">GATEWAY_API_KEY</code> + header{" "}
-              <code className="mono text-[13px]">x-secure-procure-key</code>
+              <code className="mono text-[13px]">x-gatex-key</code>
             </li>
           </ol>
         </section>

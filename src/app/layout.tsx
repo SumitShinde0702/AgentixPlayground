@@ -23,7 +23,7 @@ const ibmMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Secure-Procure",
+  title: "GateX",
   description: "Agents that buy, without being hijacked.",
 };
 

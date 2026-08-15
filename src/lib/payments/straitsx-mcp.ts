@@ -188,7 +188,7 @@ export async function withCardMcpSession<T>(
     await call("initialize", {
       protocolVersion: "2024-11-05",
       capabilities: {},
-      clientInfo: { name: "secure-procure", version: "0.1.0" },
+      clientInfo: { name: "gatex", version: "0.1.0" },
     });
     await post({ jsonrpc: "2.0", method: "notifications/initialized" });
     return await fn(call);

@@ -13,7 +13,7 @@ export function SiteNav({ dim = false }: { dim?: boolean }) {
       }`}
     >
       <Link href="/" className={`display text-[17px] ${ink}`}>
-        Secure-Procure
+        GateX
       </Link>
       <nav className="flex items-center gap-8 text-[12px] uppercase tracking-[0.16em]">
         <Link href="/demo" className={link}>
