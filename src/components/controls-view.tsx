@@ -428,50 +428,64 @@ export function ControlsView() {
                             </label>
                           ))}
                         </div>
-                        <label className="mt-6 block">
-                          <span className="text-[11px] uppercase tracking-[0.12em] text-[var(--mute)]">
-                            Merchants
-                          </span>
-                          <input
-                            key={`m-${p.agentId}-${p.merchants.join()}`}
-                            defaultValue={p.merchants.join(", ")}
-                            onBlur={(e) => {
-                              const merchants = e.target.value
-                                .split(",")
-                                .map((s) => s.trim())
-                                .filter(Boolean);
-                              if (
-                                !merchants.length ||
-                                merchants.join() === p.merchants.join()
-                              )
-                                return;
-                              void saveFields(p.agentId, { merchants });
-                            }}
-                            className="mt-2 w-full border-b border-[var(--line)] bg-transparent py-2 text-[14px] outline-none focus:border-[var(--ink)]"
-                          />
-                        </label>
-                        <label className="mt-4 block">
-                          <span className="text-[11px] uppercase tracking-[0.12em] text-[var(--mute)]">
-                            SKU allowlist
-                          </span>
-                          <input
-                            key={`s-${p.agentId}-${p.skuAllowlist.join()}`}
-                            defaultValue={p.skuAllowlist.join(", ")}
-                            onBlur={(e) => {
-                              const skuAllowlist = e.target.value
-                                .split(",")
-                                .map((s) => s.trim())
-                                .filter(Boolean);
-                              if (
-                                !skuAllowlist.length ||
-                                skuAllowlist.join() === p.skuAllowlist.join()
-                              )
-                                return;
-                              void saveFields(p.agentId, { skuAllowlist });
-                            }}
-                            className="mt-2 w-full border-b border-[var(--line)] bg-transparent py-2 text-[14px] outline-none focus:border-[var(--ink)]"
-                          />
-                        </label>
+                        <form
+                          className="mt-6"
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            const fd = new FormData(e.currentTarget);
+                            const merchants = String(fd.get("merchants") ?? "")
+                              .split(",")
+                              .map((s) => s.trim())
+                              .filter(Boolean);
+                            const skuAllowlist = String(fd.get("skus") ?? "")
+                              .split(",")
+                              .map((s) => s.trim())
+                              .filter(Boolean);
+                            void saveFields(p.agentId, {
+                              merchants,
+                              skuAllowlist,
+                            });
+                          }}
+                        >
+                          <label className="block">
+                            <span className="text-[11px] uppercase tracking-[0.12em] text-[var(--mute)]">
+                              Approved merchants
+                            </span>
+                            <input
+                              name="merchants"
+                              key={`m-${p.agentId}-${p.merchants.join()}`}
+                              defaultValue={p.merchants.join(", ")}
+                              placeholder="e.g. helix-materials.sg"
+                              className="mt-2 w-full border-b border-[var(--line)] bg-transparent py-2 text-[14px] outline-none focus:border-[var(--ink)]"
+                            />
+                            <p className="mt-2 text-[12px] leading-snug text-[var(--mute)]">
+                              Allowlist only. Empty rejects every pay (deny
+                              all). Not open to every merchant.
+                            </p>
+                          </label>
+                          <label className="mt-4 block">
+                            <span className="text-[11px] uppercase tracking-[0.12em] text-[var(--mute)]">
+                              Approved SKUs
+                            </span>
+                            <input
+                              name="skus"
+                              key={`s-${p.agentId}-${p.skuAllowlist.join()}`}
+                              defaultValue={p.skuAllowlist.join(", ")}
+                              placeholder="e.g. ALU-6061-T6"
+                              className="mt-2 w-full border-b border-[var(--line)] bg-transparent py-2 text-[14px] outline-none focus:border-[var(--ink)]"
+                            />
+                            <p className="mt-2 text-[12px] leading-snug text-[var(--mute)]">
+                              Allowlist only. Empty rejects every buy (deny
+                              all).
+                            </p>
+                          </label>
+                          <button
+                            type="submit"
+                            className="mt-5 border border-[var(--ink)] bg-[var(--ink)] px-5 py-2.5 text-[12px] uppercase tracking-[0.14em] text-[var(--paper)]"
+                          >
+                            Save allowlists
+                          </button>
+                        </form>
                         <label className="mt-6 flex items-center gap-3 text-[14px]">
                           <input
                             type="checkbox"

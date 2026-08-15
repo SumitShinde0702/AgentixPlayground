@@ -364,12 +364,12 @@ export function sleepScore(policy = getActivePolicy()) {
     },
     {
       id: "merchant",
-      label: "Merchant allowlist locked",
+      label: "Approved merchants set (empty = deny all)",
       ok: policy.merchants.length > 0,
     },
     {
       id: "sku",
-      label: "SKU allowlist locked",
+      label: "Approved SKUs set (empty = deny all)",
       ok: policy.skuAllowlist.length > 0,
     },
     {

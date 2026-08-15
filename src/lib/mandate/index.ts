@@ -71,14 +71,14 @@ export function evaluateMandate(
   if (!mandate.merchants.includes(intent.merchant)) {
     return {
       ok: false,
-      reason: `Merchant ${intent.merchant} is not whitelisted`,
+      reason: `Merchant ${intent.merchant} is not on the approved list`,
       code: "MERCHANT",
     };
   }
   if (!policy.skuAllowlist.includes(intent.sku)) {
     return {
       ok: false,
-      reason: `SKU ${intent.sku} is outside mandate allowlist`,
+      reason: `SKU ${intent.sku} is not on the approved list`,
       code: "SKU",
     };
   }
