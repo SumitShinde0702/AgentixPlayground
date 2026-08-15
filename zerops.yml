@@ -1,0 +1,19 @@
+# Hostname must match your Zerops service name (`nodejs`).
+zerops:
+  - setup: nodejs
+    build:
+      base: alpine/nodejs@24
+      buildCommands:
+        - npm i
+        - npm run build
+      # Full tree — Next uses `.next`, not `dist` from the default template
+      deployFiles: ./
+      cache:
+        - node_modules
+        - package-lock.json
+    run:
+      base: alpine/nodejs@24
+      ports:
+        - port: 3000
+          httpSupport: true
+      start: npm start
