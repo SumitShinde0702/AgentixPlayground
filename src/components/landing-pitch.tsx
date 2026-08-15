@@ -19,7 +19,7 @@ const pitch = [
   {
     id: "skill",
     title: "Skill",
-    body: "Yes — a skill for your own AI. Equip GateX; outside agents settle through your gateway — policy first, then one-time card.",
+    body: "Equip GateX in Cursor or any skill-aware agent. Their buys hit your gateway first. Policy runs before a one-time card.",
   },
   {
     id: "identity",
@@ -34,7 +34,7 @@ const pitch = [
   {
     id: "execute",
     title: "Execute",
-    body: "Verified agent: XSGD treasury → one-time card → RHA approve → x402 402/retry → Avalanche.",
+    body: "A verified agent draws from XSGD treasury, gets a one-time card, passes RHA, then settles on Avalanche with x402.",
   },
   {
     id: "audit",
@@ -59,7 +59,7 @@ function StatusStrip({
       ? "bg-[#c4452d] text-[#0c1218]"
       : tone === "warn"
         ? "bg-[#d4a017] text-[#0c1218]"
-        : "bg-[#7a9e7e] text-[#0c1218]";
+        : "bg-[#14d47c] text-[#004d40]";
 
   return (
     <motion.p
@@ -97,41 +97,52 @@ function InjectionFix() {
         arXiv:2503.18813
       </a>
       <p className="mt-5 text-[15px] leading-relaxed text-[var(--paper)]/70">
-        CaMeL separates control from untrusted data by design — Q-LLM has no
-        tools; P-LLM never sees supplier HTML. We run that split on the procure
-        path before any card is issued.
+        CaMeL splits control from untrusted data. The Q-LLM has no tools. The
+        P-LLM never sees supplier HTML. We run that split before any card is
+        issued.
       </p>
 
       <div className="mt-8 grid grid-cols-2 gap-8 border-t border-white/10 pt-6">
         <div>
-          <p className="display text-[clamp(2.4rem,4vw,3.2rem)] leading-none text-[var(--block)]">
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="display text-[clamp(2.4rem,4vw,3.2rem)] leading-none text-[var(--block)]"
+          >
             300
-          </p>
+          </motion.p>
           <p className="mt-2 text-[13px] leading-snug text-[var(--paper)]/55">
-            successful prompt-injection attacks without CaMeL
+            successful injections without CaMeL
           </p>
         </div>
         <div>
-          <p className="display text-[clamp(2.4rem,4vw,3.2rem)] leading-none text-[var(--paper)]">
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.12 }}
+            className="display text-[clamp(2.4rem,4vw,3.2rem)] leading-none text-[var(--paper)]"
+          >
             0
-          </p>
+          </motion.p>
           <p className="mt-2 text-[13px] leading-snug text-[var(--paper)]/55">
-            with CaMeL on the same AgentDojo setup (Gemini 2.5 Pro)
+            with CaMeL on AgentDojo (Gemini 2.5 Pro)
           </p>
         </div>
       </div>
       <p className="mono mt-4 text-[11px] tracking-[0.12em] text-[var(--paper)]/40">
-        AgentDojo · Debenedetti et al. / Google DeepMind · arXiv:2503.18813
+        Debenedetti et al. · Google DeepMind · arXiv:2503.18813
       </p>
       <p className="mt-2 text-[13px] leading-relaxed text-[var(--paper)]/50">
-        Attack success collapses; utility stays near the undefended ceiling
-        (77% tasks with provable security vs 84% undefended).
+        Attack success collapses. Utility stays near the undefended ceiling.
       </p>
 
       <ul className="mt-6 space-y-2 text-[14px] leading-relaxed text-[var(--paper)]/65">
-        <li>Q-LLM: page → typed capability only — no tools</li>
-        <li>P-LLM: never sees HTML; mandate stays frozen</li>
-        <li>Gateway pay cannot invent SKUs outside that plan</li>
+        <li>Q-LLM reads the page and returns a typed capability only.</li>
+        <li>P-LLM never sees HTML. The mandate stays frozen.</li>
+        <li>Gateway pay cannot invent SKUs outside that plan.</li>
       </ul>
 
       <StatusStrip label="HANDLED · via CaMeL" tone="ok" />
@@ -155,13 +166,13 @@ function ImpersonationFix() {
         Wrong key never reaches pay
       </p>
       <p className="mt-5 text-[15px] leading-relaxed text-[var(--paper)]/70">
-        Closes our rail — not Visa TAP / Mastercard KYA. Signed agent identity
-        is checked before policy and before any one-time card.
+        This closes our rail, not Visa TAP or Mastercard KYA. Signed agent
+        identity is checked before policy and before any one-time card.
       </p>
       <ul className="mt-6 space-y-2 text-[14px] leading-relaxed text-[var(--paper)]/65">
-        <li>Signed identity checked against the registry</li>
-        <li>Wrong key → no mandate → check never PASS</li>
-        <li>One-time XSGD card only after that gate</li>
+        <li>Signed identity is checked against the registry.</li>
+        <li>Wrong key means no mandate and no policy PASS.</li>
+        <li>A one-time XSGD card is issued only after that gate.</li>
       </ul>
       <StatusStrip label="HANDLED ON RAIL" tone="ok" />
       <Link
@@ -178,14 +189,14 @@ const stickyContent = [
   {
     title: "! Prompt injection",
     description:
-      "Supplier HTML embeds instructions; a single LLM treats them as tools — gift-card or redirect spend. Scoped cards only cap damage; they do not stop the instruction.",
+      "Supplier HTML embeds instructions. A single LLM treats them as tools and can gift-card or redirect spend. Scoped cards only cap damage. They do not stop the instruction.",
     leftExtra: <StatusStrip label="NOT HANDLED" tone="danger" />,
     content: <InjectionFix />,
   },
   {
     title: "! Agent impersonation",
     description:
-      "A fraudster’s bot presents itself as your shopping agent. Merchant networks can’t tell the difference; payment-card identity alone doesn’t close agent auth.",
+      "A fraudster’s bot presents itself as your shopping agent. Merchant networks cannot tell the difference. Payment-card identity alone does not close agent auth.",
     leftExtra: <StatusStrip label="PARTIALLY HANDLED" tone="warn" />,
     content: <ImpersonationFix />,
   },
@@ -210,31 +221,33 @@ export function LandingPitch() {
             <ScrollReveal textClassName="display mt-4 text-[clamp(2.6rem,5.5vw,5rem)] text-[var(--paper)] leading-[0.95]">
               Spend governance. Built in.
             </ScrollReveal>
-            <p className="mt-6 max-w-[48ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
-              A rule machine for agent purchases — policy, identity, isolation,
-              one-time cards, and sealed audit. Security on the path, not bolted
-              on after.
+            <p className="mt-6 max-w-[42ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
+              A rule machine for agent purchases. Policy, identity, isolation,
+              one-time cards, and sealed audit sit on the path.
             </p>
-            <p className="mt-4 max-w-[48ch] text-[15px] leading-relaxed text-[var(--paper)]/45">
+            <p className="mt-4 max-w-[42ch] text-[15px] leading-relaxed text-[var(--paper)]/45">
               The product is the gateway and skill. This UI is the control plane
-              and live proof — so you can watch the rail block, isolate, settle,
-              and seal.
+              and live proof.
             </p>
             <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2">
               {rulePipeline.map((step, i) => (
-                <div key={step} className="flex items-center gap-3">
+                <motion.div
+                  key={step}
+                  className="flex items-center gap-3"
+                  initial={{ opacity: 0, y: 8 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08, duration: 0.4 }}
+                >
                   {i > 0 ? (
-                    <span
-                      className="text-[var(--paper)]/25"
-                      aria-hidden
-                    >
+                    <span className="text-[var(--paper)]/25" aria-hidden>
                       →
                     </span>
                   ) : null}
                   <span className="mono text-[12px] tracking-[0.12em] text-[var(--paper)]/70">
                     {step}
                   </span>
-                </div>
+                </motion.div>
               ))}
             </div>
             <div className="mt-10 flex flex-wrap gap-4">
@@ -257,7 +270,7 @@ export function LandingPitch() {
             <ScrollReveal textClassName="display text-[clamp(2.6rem,5.5vw,5rem)] text-[var(--paper)] leading-[0.95]">
               The gaps. Closed on this rail.
             </ScrollReveal>
-            <p className="mt-6 max-w-[44ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
+            <p className="mt-6 max-w-[40ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
               Industry leaves these open. GateX closes the spend path.
             </p>
 
@@ -265,9 +278,9 @@ export function LandingPitch() {
               <StickyScrollReveal content={stickyContent} />
             </div>
 
-            <p className="mt-14 max-w-[48ch] text-[15px] leading-relaxed text-[var(--paper)]/45">
-              Scoped XSGD cards still cap damage if something else fails — they
-              don’t replace isolation or identity.
+            <p className="mt-14 max-w-[44ch] text-[15px] leading-relaxed text-[var(--paper)]/45">
+              Scoped XSGD cards still cap damage if something else fails. They
+              do not replace isolation or identity.
             </p>
           </section>
 
@@ -276,9 +289,9 @@ export function LandingPitch() {
               <ScrollReveal textClassName="display text-[clamp(2.6rem,5.5vw,5rem)] text-[var(--paper)] leading-[0.95]">
                 Only a frozen plan can spend.
               </ScrollReveal>
-              <p className="max-w-[36ch] text-[17px] leading-relaxed text-[var(--paper)]/65 md:justify-self-end md:pb-2">
-                The mandate is locked before tools run. Untrusted page content
-                never rewrites who may pay, how much, or where.
+              <p className="max-w-[34ch] text-[17px] leading-relaxed text-[var(--paper)]/65 md:justify-self-end md:pb-2">
+                The mandate locks before tools run. Page content cannot rewrite
+                who may pay, how much, or where.
               </p>
             </div>
           </section>
@@ -289,7 +302,7 @@ export function LandingPitch() {
                 Card. Protocol. Chain.
               </ScrollReveal>
               <div className="md:justify-self-end">
-                <p className="max-w-[36ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
+                <p className="max-w-[34ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
                   StraitsX issues a one-time XSGD card. x402 settles on Avalanche.
                   The credential is revoked before the receipt is sealed.
                 </p>
@@ -318,12 +331,11 @@ export function LandingPitch() {
             <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-16">
               <div>
                 <ScrollReveal textClassName="display text-[clamp(2.6rem,5.5vw,5rem)] text-[var(--paper)] leading-[0.95]">
-                  Yes — a skill for your own AI.
+                  A skill for your own AI.
                 </ScrollReveal>
-                <p className="mt-6 max-w-[36ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
-                  Drop GateX into Cursor (or any agent that reads skills).
-                  Their buys hit your gateway — check, pay, receipt — so spend never
-                  skips your policy.
+                <p className="mt-6 max-w-[34ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
+                  Drop GateX into Cursor or any skill-aware agent. Buys hit your
+                  gateway for check, pay, and receipt. Spend cannot skip policy.
                 </p>
               </div>
               <SkillTerminalDemo />
@@ -334,9 +346,9 @@ export function LandingPitch() {
             <h2 className="display text-[clamp(2.6rem,5.5vw,5rem)] text-[var(--paper)]">
               Six beats.
             </h2>
-            <p className="mt-6 max-w-[42ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
-              Control plane, equippable skill, then identity, isolation,
-              settlement, proof.
+            <p className="mt-6 max-w-[40ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
+              Control plane and skill, then identity, isolation, settlement, and
+              proof.
             </p>
             <p className="display mt-8 text-[clamp(1.8rem,3.5vw,2.8rem)]">
               <span className="text-[var(--paper)]/45">We </span>
@@ -346,9 +358,17 @@ export function LandingPitch() {
 
             <div className="mt-20 flex flex-col gap-20 md:gap-28">
               {pitch.map((beat, i) => (
-                <div
+                <motion.div
                   key={beat.title}
                   id={beat.id}
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.35 }}
+                  transition={{
+                    duration: 0.55,
+                    delay: 0.04,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
                   className="scroll-mt-28 grid gap-6 border-t border-white/10 pt-10 md:grid-cols-[7rem_1fr] md:gap-10"
                 >
                   <p className="mono text-[12px] tracking-[0.16em] text-[var(--paper)]/40">
@@ -363,7 +383,7 @@ export function LandingPitch() {
                     </p>
                     {beat.title === "Injection" ? <CamelDiagram /> : null}
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </section>

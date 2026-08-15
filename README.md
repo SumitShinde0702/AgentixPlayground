@@ -4,7 +4,7 @@ Agents that buy, without being hijacked.
 
 Identity, CaMeL isolation, a control plane for spend policy, an equippable agent **skill**, one-time StraitsX XSGD cards, and x402 settlement on Avalanche. Built for the [AgentiX Playground](https://www.straitsx.com/agentix-playground) hackathon.
 
-**Architecture:** [`ARCHITECTURE.md`](ARCHITECTURE.md) · **Hackathon links:** [`HACKATHON-LINKS.md`](HACKATHON-LINKS.md)
+**Architecture:** [`ARCHITECTURE.md`](ARCHITECTURE.md) · **Hackathon links:** [`HACKATHON-LINKS.md`](HACKATHON-LINKS.md) · **Live:** AWS Amplify (`amplify.yml`)
 
 ## Run
 
@@ -17,6 +17,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) → **Set the rules** (`/controls`), **Equip the skill** (`/skill`), or **Run the live demo**.
 
+Deploy: connect the repo to **AWS Amplify Hosting** (SSR). Set the same secrets as `.env.example` in the Amplify console. Persistence on Amplify is in-memory; local SQLite is for durable receipts on your machine.
 | Route | What |
 | --- | --- |
 | `/` | Landing (includes skill terminal demo) |

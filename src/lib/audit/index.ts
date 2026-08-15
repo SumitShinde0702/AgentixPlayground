@@ -1,5 +1,5 @@
 import { sha256 } from "@/lib/hash";
-import { getDb } from "@/lib/db/sqlite";
+import { tryGetDb } from "@/lib/db/sqlite";
 
 export type AuditEvent = {
   at: string;
@@ -32,21 +32,44 @@ export type ReceiptSummary = {
   summary: string;
 };
 
-type AuditRow = {
-  id: string;
-  head: string;
-  outcome: string;
-  created_at: string;
-  updated_at: string;
-  chain_json: string;
-};
+type Meta = { createdAt: string; updatedAt: string; outcome: ReceiptOutcome };
 
-function rowToLog(row: AuditRow): AuditLog {
-  return {
-    id: row.id,
-    head: row.head,
-    chain: JSON.parse(row.chain_json) as AuditLink[],
-  };
+const logs = new Map<string, AuditLog>();
+const meta = new Map<string, Meta>();
+let hydrated = false;
+
+function hydrate() {
+  if (hydrated) return;
+  hydrated = true;
+  const db = tryGetDb();
+  if (!db) return;
+  try {
+    const rows = db
+      .prepare(`SELECT * FROM audits`)
+      .all() as {
+      id: string;
+      head: string;
+      outcome: string;
+      created_at: string;
+      updated_at: string;
+      chain_json: string;
+    }[];
+    for (const row of rows) {
+      const log: AuditLog = {
+        id: row.id,
+        head: row.head,
+        chain: JSON.parse(row.chain_json) as AuditLink[],
+      };
+      logs.set(row.id, log);
+      meta.set(row.id, {
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        outcome: (row.outcome as ReceiptOutcome) || deriveOutcome(log),
+      });
+    }
+  } catch (err) {
+    console.warn("[gatex] audit hydrate failed", err);
+  }
 }
 
 export function deriveOutcome(log: AuditLog): ReceiptOutcome {
@@ -74,9 +97,13 @@ function summarizeLog(log: AuditLog): string {
   }
   const fail = log.chain.find((l) => l.event.type === "gateway.pay_fail");
   if (fail) {
-    return String(fail.event.detail.reason ?? fail.event.detail.code ?? "Pay failed");
+    return String(
+      fail.event.detail.reason ?? fail.event.detail.code ?? "Pay failed",
+    );
   }
-  const card = [...log.chain].reverse().find((l) => l.event.type === "card.issue");
+  const card = [...log.chain]
+    .reverse()
+    .find((l) => l.event.type === "card.issue");
   if (card && complete) {
     const last4 = card.event.detail.last4;
     return last4 ? `Paid · card ••${String(last4)}` : "Paid";
@@ -86,11 +113,22 @@ function summarizeLog(log: AuditLog): string {
   return last?.event.type ?? "Empty";
 }
 
-function persist(log: AuditLog, createdAt?: string) {
+function persist(log: AuditLog) {
   const now = new Date().toISOString();
   const outcome = deriveOutcome(log);
-  getDb()
-    .prepare(
+  const prev = meta.get(log.id);
+  const nextMeta: Meta = {
+    createdAt: prev?.createdAt ?? now,
+    updatedAt: now,
+    outcome,
+  };
+  meta.set(log.id, nextMeta);
+  logs.set(log.id, log);
+
+  const db = tryGetDb();
+  if (!db) return;
+  try {
+    db.prepare(
       `INSERT INTO audits (id, head, outcome, created_at, updated_at, chain_json)
        VALUES (@id, @head, @outcome, @created_at, @updated_at, @chain_json)
        ON CONFLICT(id) DO UPDATE SET
@@ -98,19 +136,22 @@ function persist(log: AuditLog, createdAt?: string) {
          outcome = excluded.outcome,
          updated_at = excluded.updated_at,
          chain_json = excluded.chain_json`,
-    )
-    .run({
+    ).run({
       id: log.id,
       head: log.head,
       outcome,
-      created_at: createdAt ?? now,
-      updated_at: now,
+      created_at: nextMeta.createdAt,
+      updated_at: nextMeta.updatedAt,
       chain_json: JSON.stringify(log.chain),
     });
+  } catch (err) {
+    console.warn("[gatex] audit persist failed", err);
+  }
 }
 
 export function startAudit(id: string) {
-  const existing = getAudit(id);
+  hydrate();
+  const existing = logs.get(id);
   if (existing) return existing;
   const log: AuditLog = { id, chain: [], head: "genesis" };
   persist(log);
@@ -122,25 +163,20 @@ export function appendAudit(
   type: string,
   detail: Record<string, unknown>,
 ) {
-  const log = getAudit(id) ?? startAudit(id);
+  hydrate();
+  const log = logs.get(id) ?? startAudit(id);
   const event: AuditEvent = { at: new Date().toISOString(), type, detail };
   const prev = log.chain.at(-1)?.hash ?? null;
   const hash = sha256(JSON.stringify({ prev, event }));
   log.chain.push({ hash, prev, event });
   log.head = hash;
-
-  const row = getDb()
-    .prepare(`SELECT created_at FROM audits WHERE id = ?`)
-    .get(id) as { created_at: string } | undefined;
-  persist(log, row?.created_at);
+  persist(log);
   return { hash, prev };
 }
 
 export function getAudit(id: string) {
-  const row = getDb()
-    .prepare(`SELECT * FROM audits WHERE id = ?`)
-    .get(id) as AuditRow | undefined;
-  return row ? rowToLog(row) : null;
+  hydrate();
+  return logs.get(id) ?? null;
 }
 
 export function verifyChain(log: AuditLog) {
@@ -157,35 +193,31 @@ export function verifyChain(log: AuditLog) {
 }
 
 export function listAudits() {
-  const rows = getDb()
-    .prepare(`SELECT * FROM audits ORDER BY updated_at DESC`)
-    .all() as AuditRow[];
-  return rows.map(rowToLog);
+  hydrate();
+  return [...logs.values()];
 }
 
-export function listReceipts(outcome?: ReceiptOutcome | "all"): ReceiptSummary[] {
-  const rows =
-    !outcome || outcome === "all"
-      ? (getDb()
-          .prepare(`SELECT * FROM audits ORDER BY updated_at DESC`)
-          .all() as AuditRow[])
-      : (getDb()
-          .prepare(
-            `SELECT * FROM audits WHERE outcome = ? ORDER BY updated_at DESC`,
-          )
-          .all(outcome) as AuditRow[]);
-
-  return rows.map((row) => {
-    const log = rowToLog(row);
+export function listReceipts(
+  outcome?: ReceiptOutcome | "all",
+): ReceiptSummary[] {
+  hydrate();
+  const all = [...logs.values()].map((log) => {
+    const m = meta.get(log.id);
+    const out = m?.outcome ?? deriveOutcome(log);
     return {
-      id: row.id,
-      head: row.head,
-      outcome: (row.outcome as ReceiptOutcome) || deriveOutcome(log),
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      id: log.id,
+      head: log.head,
+      outcome: out,
+      createdAt: m?.createdAt ?? new Date(0).toISOString(),
+      updatedAt: m?.updatedAt ?? new Date(0).toISOString(),
       eventCount: log.chain.length,
       lastType: log.chain.at(-1)?.event.type ?? null,
       summary: summarizeLog(log),
-    };
+    } satisfies ReceiptSummary;
   });
+
+  all.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
+
+  if (!outcome || outcome === "all") return all;
+  return all.filter((r) => r.outcome === outcome);
 }

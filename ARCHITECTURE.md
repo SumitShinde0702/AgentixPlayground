@@ -388,7 +388,7 @@ sequenceDiagram
 
 ## 12. Persistence — AWS target (vs hackathon now)
 
-**Hackathon now:** SQLite file on disk (`data/gatex.sqlite`) — policy, spend, audit survive restart.  
+**Hackathon now:** local SQLite file (`data/gatex.sqlite`); **Amplify deploy** uses in-memory (Lambda).  
 **AWS-shaped production** (what you’d build next):
 
 ```mermaid
@@ -425,9 +425,9 @@ flowchart TB
 | Spend ledger | SQLite | Postgres or DynamoDB |
 | Audit chain | SQLite (+ `/receipts` UI) | DynamoDB (`receiptId`, `seq`) or Postgres JSONB + S3 export |
 | Secrets | `.env` | Secrets Manager |
-| Compute | Zerops / single Node | ECS/Fargate or App Runner |
+| Compute | Amplify Hosting (SSR / memory) | ECS/Fargate or App Runner |
 
-**Yes, you can store on AWS** — Postgres on RDS is the next step up from the shipped SQLite file. Document the AWS shape for production; local/Zerops SQLite already keeps freeze + receipts across restart.
+**Yes, you can store on AWS** — Postgres on RDS is the next step up from local SQLite. Amplify SSR uses in-memory (Lambda FS limits); document the RDS/Dynamo shape for production durability.
 
 ---
 

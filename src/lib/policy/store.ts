@@ -1,5 +1,5 @@
 import { MANDATE, agentWalletAddress, mandateExpiryIso } from "@/lib/config";
-import { getDb } from "@/lib/db/sqlite";
+import { tryGetDb } from "@/lib/db/sqlite";
 import { nonce } from "@/lib/hash";
 
 export type AgentPolicy = {
@@ -46,50 +46,67 @@ let hydrated = false;
 function hydrateFromDb() {
   if (hydrated) return;
   hydrated = true;
-  const db = getDb();
-  for (const row of db
-    .prepare(`SELECT agent_id, json FROM policies`)
-    .all() as { agent_id: string; json: string }[]) {
-    policies.set(row.agent_id, JSON.parse(row.json) as AgentPolicy);
-  }
-  for (const row of db
-    .prepare(`SELECT agent_id, json FROM ledgers`)
-    .all() as { agent_id: string; json: string }[]) {
-    ledgers.set(row.agent_id, JSON.parse(row.json) as SpendLedger);
-  }
-  const meta = db
-    .prepare(`SELECT value FROM meta WHERE key = 'active_agent_id'`)
-    .get() as { value: string } | undefined;
-  if (meta?.value && policies.has(meta.value)) {
-    activeAgentId = meta.value;
+  const db = tryGetDb();
+  if (!db) return;
+  try {
+    for (const row of db
+      .prepare(`SELECT agent_id, json FROM policies`)
+      .all() as { agent_id: string; json: string }[]) {
+      policies.set(row.agent_id, JSON.parse(row.json) as AgentPolicy);
+    }
+    for (const row of db
+      .prepare(`SELECT agent_id, json FROM ledgers`)
+      .all() as { agent_id: string; json: string }[]) {
+      ledgers.set(row.agent_id, JSON.parse(row.json) as SpendLedger);
+    }
+    const metaRow = db
+      .prepare(`SELECT value FROM meta WHERE key = 'active_agent_id'`)
+      .get() as { value: string } | undefined;
+    if (metaRow?.value && policies.has(metaRow.value)) {
+      activeAgentId = metaRow.value;
+    }
+  } catch (err) {
+    console.warn("[gatex] policy hydrate failed", err);
   }
 }
 
 function savePolicy(policy: AgentPolicy) {
-  getDb()
-    .prepare(
+  const db = tryGetDb();
+  if (!db) return;
+  try {
+    db.prepare(
       `INSERT INTO policies (agent_id, json) VALUES (?, ?)
        ON CONFLICT(agent_id) DO UPDATE SET json = excluded.json`,
-    )
-    .run(policy.agentId, JSON.stringify(policy));
+    ).run(policy.agentId, JSON.stringify(policy));
+  } catch (err) {
+    console.warn("[gatex] policy save failed", err);
+  }
 }
 
 function saveLedger(agentId: string, ledger: SpendLedger) {
-  getDb()
-    .prepare(
+  const db = tryGetDb();
+  if (!db) return;
+  try {
+    db.prepare(
       `INSERT INTO ledgers (agent_id, json) VALUES (?, ?)
        ON CONFLICT(agent_id) DO UPDATE SET json = excluded.json`,
-    )
-    .run(agentId, JSON.stringify(ledger));
+    ).run(agentId, JSON.stringify(ledger));
+  } catch (err) {
+    console.warn("[gatex] ledger save failed", err);
+  }
 }
 
 function saveActiveAgent() {
-  getDb()
-    .prepare(
+  const db = tryGetDb();
+  if (!db) return;
+  try {
+    db.prepare(
       `INSERT INTO meta (key, value) VALUES ('active_agent_id', ?)
        ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
-    )
-    .run(activeAgentId);
+    ).run(activeAgentId);
+  } catch (err) {
+    console.warn("[gatex] active agent save failed", err);
+  }
 }
 
 function emptyLedger(): SpendLedger {

@@ -488,7 +488,8 @@ export default function ArchitecturePage() {
 
         <Section id="aws" eyebrow="10 · Target" title="AWS persistence shape">
           <p className="max-w-[56ch] text-[15px] leading-relaxed text-[var(--mute)]">
-            Hackathon: Zerops + memory. Hire-signal target: RDS for policy/spend,
+            Hackathon: Amplify Hosting (memory on SSR) + local SQLite.
+            Hire-signal target: RDS for policy/spend,
             DynamoDB or Postgres JSONB for audit links, Secrets Manager for
             keys, ECS/App Runner for the Next process.
           </p>

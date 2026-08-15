@@ -6,6 +6,8 @@ frontend:
         - npm install --legacy-peer-deps
     build:
       commands:
+        # Amplify SSR = Lambda; prefer memory path in any build-time probes
+        - export GATEX_FORCE_MEMORY=1
         - npm run build
   artifacts:
     baseDirectory: .next

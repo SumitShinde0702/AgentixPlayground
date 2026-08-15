@@ -17,40 +17,56 @@ import {
   merchantWalletAddress,
   x402Network,
 } from "@/lib/config";
+import { persistenceMode } from "@/lib/db/sqlite";
+
+export const runtime = "nodejs";
 
 export async function GET() {
-  const chain = await liveFundingSnapshot();
-  void agents.corporate;
-  const policy = getActivePolicy();
-  return NextResponse.json({
-    mandate: currentMandate(),
-    mandateHash: mandateHash(),
-    policy,
-    sleep: sleepScore(policy),
-    spend: getSpendSnapshot(policy.agentId),
-    agents: {
-      corporate: {
-        id: agents.corporate.id,
-        did: agents.corporate.did,
-        label: agents.corporate.label,
+  try {
+    const chain = await liveFundingSnapshot();
+    void agents.corporate;
+    const policy = getActivePolicy();
+    return NextResponse.json({
+      mandate: currentMandate(),
+      mandateHash: mandateHash(),
+      policy,
+      sleep: sleepScore(policy),
+      spend: getSpendSnapshot(policy.agentId),
+      agents: {
+        corporate: {
+          id: agents.corporate.id,
+          did: agents.corporate.did,
+          label: agents.corporate.label,
+        },
+        rogue: {
+          id: agents.rogue.id,
+          did: agents.rogue.did,
+          label: agents.rogue.label,
+        },
       },
-      rogue: {
-        id: agents.rogue.id,
-        did: agents.rogue.did,
-        label: agents.rogue.label,
+      card: getLatestCard(),
+      settlement: getLastSettlement(),
+      livePending: getLivePending(),
+      chain,
+      wallets: {
+        agent: policy.treasuryAddress || agentWalletAddress() || null,
+        merchant: merchantWalletAddress() || null,
+        token: XSGD.address,
+        network: x402Network(),
+        chainId: avalancheChainId(),
       },
-    },
-    card: getLatestCard(),
-    settlement: getLastSettlement(),
-    livePending: getLivePending(),
-    chain,
-    wallets: {
-      agent: policy.treasuryAddress || agentWalletAddress() || null,
-      merchant: merchantWalletAddress() || null,
-      token: XSGD.address,
-      network: x402Network(),
-      chainId: avalancheChainId(),
-    },
-    console: getConsoleState(),
-  });
+      console: getConsoleState(),
+      persistence: persistenceMode(),
+    });
+  } catch (err) {
+    console.error("[api/state]", err);
+    return NextResponse.json(
+      {
+        error: "state_failed",
+        message: err instanceof Error ? err.message : String(err),
+        persistence: persistenceMode(),
+      },
+      { status: 500 },
+    );
+  }
 }
