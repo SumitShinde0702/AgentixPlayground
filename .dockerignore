@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.env*
+!.env.example
+*.md
+mcp-out.txt
+.DS_Store
+npm-debug.log*
+.vercel
