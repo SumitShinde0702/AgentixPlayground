@@ -8,6 +8,34 @@ frontend:
       commands:
         # Amplify SSR = Lambda; prefer memory path in any build-time probes
         - export GATEX_FORCE_MEMORY=1
+        # Console env/secrets are in the build shell but Next SSR often
+        # does not see them at runtime. Bake server .env.production here.
+        - |
+          set -e
+          : > .env.production
+          for key in \
+            AGENT_WALLET_ADDRESS \
+            AGENT_PRIVATE_KEY \
+            MERCHANT_WALLET_ADDRESS \
+            CROSSMINT_WALLET_ADDRESS \
+            CARD_MCP_AMOUNT_SGD \
+            STRAITSX_CARD_MCP_URL \
+            STRAITSX_API_HOST \
+            GATEX_BASE_URL \
+            GATEWAY_API_KEY \
+            X402_NETWORK \
+            X402_FACILITATOR_URL \
+            OPENAI_API_KEY \
+            OPENAI_MODEL
+          do
+            eval "val=\${$key-}"
+            if [ -n "$val" ]; then
+              # escape newlines; keep value on one line for dotenv
+              printf '%s=%s\n' "$key" "$(printf '%s' "$val" | tr -d '\r\n')" >> .env.production
+            fi
+          done
+          echo "Wrote .env.production keys:" 
+          cut -d= -f1 .env.production | sed 's/^/  - /'
         - npm run build
   artifacts:
     baseDirectory: .next

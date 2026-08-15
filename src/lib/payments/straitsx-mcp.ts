@@ -84,8 +84,7 @@ export function cardMcpToolName() {
 }
 
 export function mcpCardAmountSgd(preferred?: number) {
-  const raw = (process.env["CARD_MCP_AMOUNT_SGD"] ?? preferred ?? 5).toString();
-  const fromEnv = Number(raw);
+  const fromEnv = Number(process.env.CARD_MCP_AMOUNT_SGD ?? preferred ?? 5);
   return Math.min(30, Math.max(5, Number.isFinite(fromEnv) ? fromEnv : 5));
 }
 
