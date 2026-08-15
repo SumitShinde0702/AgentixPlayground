@@ -42,17 +42,18 @@ export function TracingBeam({
   return (
     <motion.div
       ref={ref}
-      className={cn("relative mx-auto w-full max-w-5xl", className)}
+      className={cn("relative mx-auto w-full max-w-7xl", className)}
     >
-      <div className="absolute top-3 -left-3 md:left-2">
-        <motion.div className="ml-[27px] flex h-4 w-4 items-center justify-center rounded-full border border-white/20">
+      {/* Beam sits in the left gutter so content can use the full width */}
+      <div className="pointer-events-none absolute top-3 left-0 z-0 w-5">
+        <motion.div className="flex h-4 w-4 items-center justify-center rounded-full border border-white/20">
           <motion.div className="h-2 w-2 rounded-full bg-[var(--pass)]" />
         </motion.div>
         <svg
           viewBox={`0 0 20 ${Math.max(svgHeight, 1)}`}
           width="20"
           height={svgHeight}
-          className="ml-4 block"
+          className="ml-0.5 block"
           aria-hidden
         >
           <motion.path
@@ -85,7 +86,7 @@ export function TracingBeam({
           </defs>
         </svg>
       </div>
-      <div ref={contentRef} className="relative ml-10 md:ml-16">
+      <div ref={contentRef} className="relative z-10 pl-8 md:pl-10">
         {children}
       </div>
     </motion.div>
