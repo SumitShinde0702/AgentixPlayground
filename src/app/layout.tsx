@@ -25,6 +25,9 @@ const ibmMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "GateX",
   description: "Agents that buy, without being hijacked.",
+  icons: {
+    icon: [{ url: "/favicon.png", type: "image/png" }],
+  },
 };
 
 export default function RootLayout({
