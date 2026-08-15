@@ -1,0 +1,208 @@
+<mxfile host="app.diagrams.net" agent="GateX" version="22.1.0" type="device">
+  <diagram id="gatex-arch" name="GateX Architecture">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="GateX — Product Architecture (AgentiX Playground)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontStyle=1;fontSize=20;fontColor=#111827;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="720" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Identity · CaMeL isolation · Policy gateway · StraitsX Card MCP · Avalanche XSGD · Amplify Hosting" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=12;fontColor=#6B7280;" vertex="1" parent="1">
+          <mxGeometry x="40" y="52" width="900" height="24" as="geometry" />
+        </mxCell>
+
+        <!-- ========== ACTORS ========== -->
+        <mxCell id="actors" value="Actors" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;fillColor=#F3F4F6;strokeColor=#9CA3AF;fontStyle=1;fontSize=13;startSize=28;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="200" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="human" value="Treasury operator&#xa;/controls · freeze · fund XSGD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DBEAFE;strokeColor=#3B82F6;fontSize=12;" vertex="1" parent="actors">
+          <mxGeometry x="40" y="50" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="agent" value="Equipped AI agent&#xa;Cursor skill → gateway" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DBEAFE;strokeColor=#3B82F6;fontSize=12;" vertex="1" parent="actors">
+          <mxGeometry x="40" y="140" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="judge" value="Demo / judges&#xa;/demo theater SSE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E7FF;strokeColor=#6366F1;fontSize=12;" vertex="1" parent="actors">
+          <mxGeometry x="40" y="230" width="140" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ========== AWS AMPLIFY ========== -->
+        <mxCell id="aws" value="AWS Amplify Hosting (deploy)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFF7ED;strokeColor=#F97316;fontStyle=1;fontSize=13;startSize=32;" vertex="1" parent="1">
+          <mxGeometry x="280" y="100" width="720" height="520" as="geometry" />
+        </mxCell>
+
+        <!-- UI -->
+        <mxCell id="ui" value="UI · Next.js App Router" style="swimlane;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#10B981;fontStyle=1;fontSize=12;startSize=26;" vertex="1" parent="aws">
+          <mxGeometry x="20" y="50" width="680" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="r1" value="/controls" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;fontSize=11;" vertex="1" parent="ui">
+          <mxGeometry x="16" y="40" width="90" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="r2" value="/skill" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;fontSize=11;" vertex="1" parent="ui">
+          <mxGeometry x="116" y="40" width="80" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="r3" value="/demo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;fontSize=11;" vertex="1" parent="ui">
+          <mxGeometry x="206" y="40" width="80" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="r4" value="/receipts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;fontSize=11;" vertex="1" parent="ui">
+          <mxGeometry x="296" y="40" width="90" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="r5" value="/console" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;fontSize=11;" vertex="1" parent="ui">
+          <mxGeometry x="396" y="40" width="90" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="r6" value="/architecture" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;fontSize=11;" vertex="1" parent="ui">
+          <mxGeometry x="496" y="40" width="100" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="r7" value="/audit/[id]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;fontSize=11;" vertex="1" parent="ui">
+          <mxGeometry x="606" y="40" width="60" height="36" as="geometry" />
+        </mxCell>
+
+        <!-- API -->
+        <mxCell id="api" value="API routes (control plane)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;fontStyle=1;fontSize=12;startSize=26;" vertex="1" parent="aws">
+          <mxGeometry x="20" y="160" width="680" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" value="/api/gateway/*&#xa;check · pay · receipt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;fontSize=11;fontStyle=1;" vertex="1" parent="api">
+          <mxGeometry x="16" y="36" width="150" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" value="/api/run&#xa;demo SSE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;fontSize=11;" vertex="1" parent="api">
+          <mxGeometry x="180" y="36" width="100" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" value="/api/agents/freeze" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;fontSize=11;" vertex="1" parent="api">
+          <mxGeometry x="294" y="36" width="120" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" value="/api/policy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;fontSize=11;" vertex="1" parent="api">
+          <mxGeometry x="428" y="36" width="90" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="a5" value="/api/receipts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;fontSize=11;" vertex="1" parent="api">
+          <mxGeometry x="532" y="36" width="100" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- Domain -->
+        <mxCell id="domain" value="Domain libs (functional blocks)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontStyle=1;fontSize=12;startSize=26;" vertex="1" parent="aws">
+          <mxGeometry x="20" y="270" width="680" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="d1" value="Identity&#xa;did:key · Ed25519&#xa;registry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;fontSize=11;" vertex="1" parent="domain">
+          <mxGeometry x="16" y="40" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d2" value="CaMeL&#xa;P-LLM / Q-LLM&#xa;quarantine HTML" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;fontSize=11;" vertex="1" parent="domain">
+          <mxGeometry x="128" y="40" width="110" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d3" value="Policy + Mandate&#xa;caps · freeze&#xa;evaluateMandate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;fontSize=11;fontStyle=1;" vertex="1" parent="domain">
+          <mxGeometry x="250" y="40" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d4" value="Cards + RHA&#xa;issue · authorize&#xa;revoke one-time" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;fontSize=11;" vertex="1" parent="domain">
+          <mxGeometry x="384" y="40" width="110" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d5" value="x402 / XSGD&#xa;EIP-3009&#xa;settlement_tx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;fontSize=11;" vertex="1" parent="domain">
+          <mxGeometry x="508" y="40" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d6" value="Audit&#xa;hash chain&#xa;receipts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;fontSize=11;" vertex="1" parent="domain">
+          <mxGeometry x="620" y="40" width="44" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Persistence note inside Amplify -->
+        <mxCell id="persist" value="Persistence on Amplify SSR: in-memory (Lambda). Local: SQLite data/gatex.sqlite. OpenAPI: /openapi/gateway.yaml" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEDD5;strokeColor=#F97316;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="aws">
+          <mxGeometry x="20" y="430" width="680" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ========== EXTERNAL ========== -->
+        <mxCell id="ext" value="External systems" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FCE7F3;strokeColor=#DB2777;fontStyle=1;fontSize=13;startSize=28;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="100" width="280" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="mcp" value="StraitsX Card MCP&#xa;SSE · get_card_sandbox&#xa;cardapi + HTTP 402" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#DB2777;fontSize=12;fontStyle=1;" vertex="1" parent="ext">
+          <mxGeometry x="30" y="50" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="avax" value="Avalanche C-Chain&#xa;XSGD · Fuji / mainnet&#xa;Snowtrace receipts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#DB2777;fontSize=12;" vertex="1" parent="ext">
+          <mxGeometry x="30" y="150" width="220" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="openai" value="OpenAI (optional)&#xa;Q-LLM structured extract" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#DB2777;fontSize=12;" vertex="1" parent="ext">
+          <mxGeometry x="30" y="250" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="skillfile" value="Skill artifact&#xa;public/skills/gatex/SKILL.md" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#DB2777;fontSize=12;" vertex="1" parent="ext">
+          <mxGeometry x="30" y="330" width="220" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ========== DATA FLOW PANEL ========== -->
+        <mxCell id="flow" value="Spend data flow (equipped agent)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#16A34A;fontStyle=1;fontSize=13;startSize=28;" vertex="1" parent="1">
+          <mxGeometry x="40" y="660" width="1280" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="f1" value="1. check_spend&#xa;POST /api/gateway/check" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=11;" vertex="1" parent="flow">
+          <mxGeometry x="20" y="50" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="f2" value="2. evaluateMandate&#xa;FROZEN · CAP · SKU…" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=11;" vertex="1" parent="flow">
+          <mxGeometry x="200" y="50" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="f3" value="3. request_pay&#xa;POST /api/gateway/pay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=11;" vertex="1" parent="flow">
+          <mxGeometry x="380" y="50" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="f4" value="4. Card MCP&#xa;one-time XSGD card" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=11;" vertex="1" parent="flow">
+          <mxGeometry x="560" y="50" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="f5" value="5. RHA + EIP-3009&#xa;settle on Avalanche" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=11;" vertex="1" parent="flow">
+          <mxGeometry x="740" y="50" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="f6" value="6. revoke card&#xa;seal receipt chain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=11;" vertex="1" parent="flow">
+          <mxGeometry x="920" y="50" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="f7" value="7. GET receipt&#xa;verifyChain" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=11;" vertex="1" parent="flow">
+          <mxGeometry x="1100" y="50" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fnote" value="Deny path: frozen / cap / merchant / CaMeL assert fail → BLOCK + audit (no standing card). Demo theater: Identity → Injection → Execute → Audit." style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontColor=#166534;" vertex="1" parent="flow">
+          <mxGeometry x="20" y="130" width="1240" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ========== EDGES ========== -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#3B82F6;endArrow=block;endFill=1;" edge="1" parent="1" source="human" target="r1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#3B82F6;endArrow=block;endFill=1;" edge="1" parent="1" source="agent" target="a1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#9CA3AF;endArrow=block;fontSize=10;fontColor=#6B7280;" edge="1" parent="1" source="judge" target="r3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#10B981;endArrow=block;" edge="1" parent="1" source="ui" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3B82F6;endArrow=block;" edge="1" parent="1" source="api" target="domain">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="MCP SSE + cardapi" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#DB2777;endArrow=block;fontSize=10;" edge="1" parent="1" source="d4" target="mcp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" value="RPC / settlement_tx" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#DB2777;endArrow=block;fontSize=10;" edge="1" parent="1" source="d5" target="avax">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="optional" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#DB2777;dashed=1;endArrow=block;fontSize=10;" edge="1" parent="1" source="d2" target="openai">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Flow arrows -->
+        <mxCell id="fe1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#16A34A;endArrow=block;endFill=1;" edge="1" parent="1" source="f1" target="f2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fe2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#16A34A;endArrow=block;endFill=1;" edge="1" parent="1" source="f2" target="f3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fe3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#16A34A;endArrow=block;endFill=1;" edge="1" parent="1" source="f3" target="f4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fe4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#16A34A;endArrow=block;endFill=1;" edge="1" parent="1" source="f4" target="f5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fe5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#16A34A;endArrow=block;endFill=1;" edge="1" parent="1" source="f5" target="f6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fe6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#16A34A;endArrow=block;endFill=1;" edge="1" parent="1" source="f6" target="f7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Footer -->
+        <mxCell id="footer" value="Stack: Next.js · TypeScript · StraitsX Card MCP · Avalanche · x402 · Ed25519 · CaMeL  |  Docs: ARCHITECTURE.md · OpenAPI /openapi/gateway.yaml  |  Live: AWS Amplify" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontColor=#6B7280;" vertex="1" parent="1">
+          <mxGeometry x="40" y="880" width="1280" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

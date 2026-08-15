@@ -4,7 +4,7 @@ Agents that buy, without being hijacked.
 
 Identity, CaMeL isolation, a control plane for spend policy, an equippable agent **skill**, one-time StraitsX XSGD cards, and x402 settlement on Avalanche. Built for the [AgentiX Playground](https://www.straitsx.com/agentix-playground) hackathon.
 
-**Architecture:** [`ARCHITECTURE.md`](ARCHITECTURE.md) · **Hackathon links:** [`HACKATHON-LINKS.md`](HACKATHON-LINKS.md) · **Live:** AWS Amplify (`amplify.yml`)
+**Architecture:** [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`architecture.drawio`](architecture.drawio) · **Hackathon links:** [`HACKATHON-LINKS.md`](HACKATHON-LINKS.md) · **Live:** AWS Amplify (`amplify.yml`)
 
 ## Run
 

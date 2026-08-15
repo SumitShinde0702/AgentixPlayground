@@ -8,7 +8,11 @@ import {
 } from "viem";
 import { avalanche, avalancheFuji } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
-import { agentWalletAddress, straitsxCardMcpUrl } from "@/lib/config";
+import {
+  agentPrivateKey,
+  agentWalletAddress,
+  straitsxCardMcpUrl,
+} from "@/lib/config";
 
 export type McpTool = {
   name: string;
@@ -80,8 +84,9 @@ export function cardMcpToolName() {
 }
 
 export function mcpCardAmountSgd(preferred?: number) {
-  const fromEnv = Number(process.env.CARD_MCP_AMOUNT_SGD ?? preferred ?? 10);
-  return Math.min(30, Math.max(5, Number.isFinite(fromEnv) ? fromEnv : 10));
+  const raw = (process.env["CARD_MCP_AMOUNT_SGD"] ?? preferred ?? 5).toString();
+  const fromEnv = Number(raw);
+  return Math.min(30, Math.max(5, Number.isFinite(fromEnv) ? fromEnv : 5));
 }
 
 type Pending = {
@@ -289,7 +294,7 @@ function normalizePrivateKey(raw: string): `0x${string}` {
 }
 
 async function signEip3009Payment(accept: PaymentAccept, from: `0x${string}`) {
-  const pk = process.env.AGENT_PRIVATE_KEY?.trim();
+  const pk = agentPrivateKey();
   if (!pk) throw new Error("AGENT_PRIVATE_KEY required to pay for MCP card");
 
   const key = normalizePrivateKey(pk);
@@ -401,7 +406,7 @@ async function broadcastTransferWithAuthorization(
   },
   signature: `0x${string}`,
 ): Promise<{ ok: true; txHash: `0x${string}` } | { ok: false; reason: string }> {
-  const pk = process.env.AGENT_PRIVATE_KEY?.trim();
+  const pk = agentPrivateKey();
   if (!pk) return { ok: false, reason: "AGENT_PRIVATE_KEY missing" };
 
   const chain = accept.chainId === 43113 ? avalancheFuji : avalanche;
@@ -566,7 +571,7 @@ export async function issueCardViaMcp(opts: {
     };
   }
 
-  if (!process.env.AGENT_PRIVATE_KEY?.trim()) {
+  if (!agentPrivateKey()) {
     return {
       ok: false,
       stage: "pay",

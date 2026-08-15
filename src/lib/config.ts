@@ -18,22 +18,31 @@ export const XSGD = {
   decimals: 6,
 } as const;
 
+/** Dynamic key — avoids Next baking empty `process.env.FOO` at Amplify build time. */
+function env(name: string) {
+  return (process.env[name] ?? "").trim();
+}
+
 /** Agent funding wallet — holds XSGD (balanceOf proof). */
 export function agentWalletAddress() {
-  return process.env.AGENT_WALLET_ADDRESS?.trim() || "";
+  return env("AGENT_WALLET_ADDRESS");
 }
 
 /** Merchant / x402 payTo — receiver of settlement. */
 export function merchantWalletAddress() {
   return (
-    process.env.MERCHANT_WALLET_ADDRESS?.trim() ||
-    process.env.CROSSMINT_WALLET_ADDRESS?.trim() ||
+    env("MERCHANT_WALLET_ADDRESS") ||
+    env("CROSSMINT_WALLET_ADDRESS") ||
     ""
   );
 }
 
+export function agentPrivateKey() {
+  return env("AGENT_PRIVATE_KEY");
+}
+
 export function x402Network() {
-  return process.env.X402_NETWORK ?? "eip155:43114";
+  return env("X402_NETWORK") || "eip155:43114";
 }
 
 export function avalancheChainId() {
@@ -73,16 +82,16 @@ export function snowtraceTokenUrl(holder: string) {
 }
 
 export function straitsxHost() {
-  return process.env.STRAITSX_API_HOST ?? "https://api-sandbox.straitsx.com";
+  return env("STRAITSX_API_HOST") || "https://api-sandbox.straitsx.com";
 }
 
 export function straitsxCardMcpUrl() {
-  return process.env.STRAITSX_CARD_MCP_URL ?? "https://card.straitsx.ai/sandbox/sse";
+  return env("STRAITSX_CARD_MCP_URL") || "https://card.straitsx.ai/sandbox/sse";
 }
 
 export function facilitatorUrl() {
   return (
-    process.env.X402_FACILITATOR_URL ??
+    env("X402_FACILITATOR_URL") ||
     "https://facilitator.ultravioletadao.xyz"
   );
 }
