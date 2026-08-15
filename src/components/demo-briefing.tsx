@@ -22,39 +22,45 @@ const PHASE_COPY: Record<
   1: {
     label: "01 · Identity",
     title: "Wrong key never pays",
-    before: "Rogue bot signs with any key and looks like your buyer.",
-    after: "Wrong DID blocked; mandate never opens.",
+    before:
+      "A rogue bot can sign with any key and still look like your buyer.",
+    after:
+      "The wrong DID is blocked and the mandate never opens.",
     howWeTest:
-      "Present two agents: a rogue DID not on the registry and a corporate DID that is. Same purchase intent. Watch the registry check — only the registered agent may proceed; rogue gets BLOCK, mandate untouched.",
-    how: "Corporate registry checks signed agent identity before policy or pay.",
+      "We present two agents with the same purchase intent. One uses a rogue DID that is not on the registry. The other uses a corporate DID that is. Only the registered agent may proceed. The rogue gets BLOCK and the mandate stays untouched.",
+    how: "A corporate registry checks signed agent identity before any policy check or payment.",
   },
   2: {
     label: "02 · Injection",
     title: "Page text is not a tool",
-    before: "Supplier HTML (“add gift cards”) becomes a tool call.",
-    after: "Injection quarantined; only typed SKU reaches pay.",
+    before:
+      "Supplier HTML that says “add gift cards” can become a real tool call.",
+    after:
+      "The injection is quarantined and only the typed SKU reaches pay.",
     howWeTest:
-      "Put up a supplier webpage (Helix) with hidden prompt injection (gift cards, reroute payee). Ask the agent to crawl / buy from it. Without isolation the model treats page text as instructions. With GateX/CaMeL the crawl still runs, but injections are quarantined and never become tools — you see both outcomes in the lanes.",
-    how: "CaMeL splits control from untrusted data — Q-LLM sees the page with no tools; P-LLM never sees raw HTML.",
+      "We put up a supplier page (Helix) with a hidden prompt injection about gift cards and a rerouted payee. We ask the agent to crawl and buy from it. Without isolation the model treats page text as instructions. With GateX and CaMeL the crawl still runs, but injections are quarantined and never become tools. You see both outcomes in the lanes.",
+    how: "CaMeL splits control from untrusted data. The Q-LLM sees the page with no tools. The P-LLM never sees raw HTML.",
     camel: true,
   },
   3: {
     label: "03 · Execute",
     title: "Policy then one-time card",
-    before: "Agent holds standing spend power / wallet risk.",
-    after: "One-time XSGD card only after policy PASS.",
+    before:
+      "The agent holds standing spend power and wallet risk.",
+    after:
+      "A one-time XSGD card is issued only after policy PASS.",
     howWeTest:
-      "Run the corporate agent for real: check policy, mint a one-time card, try to settle. You should see card + settlement in Evidence (or a clear CAP block if over the daily limit).",
-    how: "check_spend → Card MCP → x402 / Avalanche; no standing Visa on the agent.",
+      "We run the corporate agent for real. We check policy, then mint and settle. You should see the card and settlement in Evidence, or a clear CAP block if the run is over the daily limit.",
+    how: "StraitsX Card MCP issues the card. GateX decides whether that call is allowed by checking mandate match, daily CAP, freeze, merchant, and SKU. Only then does the flow run check_spend, Card MCP, and x402 on Avalanche. There is no standing Visa on the agent. Spend power is rented per purchase.",
   },
   4: {
     label: "04 · Audit",
     title: "Seal and revoke",
-    before: "Card or secret may still be reusable.",
-    after: "Receipt sealed; card already revoked.",
+    before: "A card or secret may still be reusable after the buy.",
+    after: "The receipt is sealed and the card is already revoked.",
     howWeTest:
-      "After a run, open the sealed receipt for that beat. Key 1’s receipt is only the rogue BLOCK. After 3–4, Open receipt for the full authorized chain (card → settle → revoke). Don’t mix them up.",
-    how: "Auto-revoke after purchase; the audit chain is the proof.",
+      "Run the authorized purchase first (key 3). On this beat we revoke the one-time card and seal a hash-chained receipt covering identity, policy, card, settle, and revoke. In Evidence, card status should be revoked and the chain head should match the open receipt.",
+    how: "The card auto-revokes after purchase so it cannot be reused. GateX appends each step to an audit chain and seals it. That sealed receipt is the proof, not a screenshot of the theater.",
   },
 };
 
@@ -96,9 +102,9 @@ function HowWeProveDisclosure() {
         How we prove it (not theater-only)
       </summary>
       <p className="mt-3 text-[14px] leading-relaxed text-[var(--ink)]/65">
-        Each beat is a live test (rogue vs registry, injected page crawl, gateway
-        pay, sealed receipt) — not a slideshow. Keys 1–4 re-run that beat only,
-        not the full story from scratch.
+        Each beat is a live test, not a slideshow: rogue versus registry, injected
+        page crawl, gateway pay, and a sealed receipt. Keys 1 through 4 re-run
+        that beat only, not the full story from scratch.
       </p>
     </details>
   );
@@ -108,38 +114,59 @@ export function DemoWelcome({ onEnter }: { onEnter: () => void }) {
   return (
     <OverlayShell onDismiss={onEnter}>
       <p className="mono text-[11px] uppercase tracking-[0.18em] text-[var(--mute)]">
-        Live proof
+        Desk · live rail
       </p>
       <h2 className="display mt-3 text-[clamp(2.2rem,5vw,3.4rem)] leading-[0.95]">
-        Welcome to GateX
+        You hold the keys.
       </h2>
       <p className="mt-5 text-[16px] leading-relaxed text-[var(--ink)]/75">
-        Agents that buy, without being hijacked.
+        Two agents. One mandate. GateX is the rail between them. It can block,
+        isolate, settle, and seal. This UI exists so you can watch that happen
+        live.
       </p>
-      <p className="mt-4 text-[15px] leading-relaxed text-[var(--ink)]/70">
-        GateX is mostly infrastructure — the gateway and equippable skill. This
-        UI exists so you can <span className="text-[var(--ink)]">see it work</span>{" "}
-        live: block, isolate, settle, seal.
+
+      <div className="mt-8 grid gap-5 border-t border-[var(--line)] pt-6 md:grid-cols-2">
+        <div>
+          <p className="mono text-[11px] uppercase tracking-[0.16em] text-[var(--block)]">
+            Rogue
+          </p>
+          <p className="mt-2 text-[15px] leading-relaxed text-[var(--ink)]/70">
+            An unsigned outsider with the same purchase story and no registry
+            seat. Beat <span className="mono text-[13px]">1</span> should stop
+            them cold.
+          </p>
+        </div>
+        <div>
+          <p className="mono text-[11px] uppercase tracking-[0.16em] text-[var(--pass)]">
+            Corporate
+          </p>
+          <p className="mt-2 text-[15px] leading-relaxed text-[var(--ink)]/70">
+            The named buyer on the mandate. They survive identity, then earn a
+            one-time card. They never get a standing wallet.
+          </p>
+        </div>
+      </div>
+
+      <p className="mt-6 text-[14px] leading-relaxed text-[var(--ink)]/55">
+        You are the human on desk. You can{" "}
+        <Link
+          href="/controls"
+          className="text-[var(--ink)]/80 underline-offset-2 hover:underline"
+        >
+          Set the rules
+        </Link>{" "}
+        anytime. Theater proves the agents obey them.
       </p>
-      <p className="mt-4 text-[15px] leading-relaxed text-[var(--ink)]/70">
-        Spend policy lives in{" "}
-        <span className="text-[var(--ink)]">Set the rules</span> — connect
-        treasury, set limits, freeze anytime. This theater is the proof run.
+
+      <p className="mt-5 border-l-2 border-[var(--line)] pl-4 text-[13px] leading-relaxed text-[var(--mute)]">
+        Receipt tip. Key <span className="mono">1</span> seals a short block.
+        After keys <span className="mono">3</span> and{" "}
+        <span className="mono">4</span>, open the authorized receipt for the
+        full chain. Do not mix them.
       </p>
-      <p className="mt-4 text-[15px] leading-relaxed text-[var(--ink)]/70">
-        Each beat seals its{" "}
-        <span className="text-[var(--ink)]">own receipt</span>. Key{" "}
-        <span className="mono text-[13px]">1</span> (rogue) = short “blocked”
-        receipt. After{" "}
-        <span className="mono text-[13px]">3</span>–
-        <span className="mono text-[13px]">4</span> (authorized pay), use{" "}
-        <span className="text-[var(--ink)]">Open receipt</span> — that is the
-        full chain (card, settle, revoke). Don’t open the rogue receipt after a
-        full pay.
-      </p>
+
       <p className="mono mt-6 text-[11px] uppercase tracking-[0.14em] text-[var(--mute)]">
-        Press 1 → 2 → 3 → 4 · each beat explains first · keys re-run that beat
-        only
+        1 → 2 → 3 → 4 · briefing first · same key re-runs that beat
       </p>
       <HowWeProveDisclosure />
       <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -148,7 +175,7 @@ export function DemoWelcome({ onEnter }: { onEnter: () => void }) {
           onClick={onEnter}
           className="border border-[var(--ink)] bg-[var(--ink)] px-5 py-3 text-[12px] uppercase tracking-[0.14em] text-[var(--paper)]"
         >
-          Enter the demo
+          Take the desk
         </button>
         <Link
           href="/controls"
@@ -217,7 +244,7 @@ export function DemoPhaseBriefing({
         {copy.camel ? (
           <div className="mt-5">
             <p className="text-[13px] leading-relaxed text-[var(--ink)]/55">
-              Lab backup — Google DeepMind / Debenedetti et al.{" "}
+              Lab backup from Google DeepMind and Debenedetti et al.,{" "}
               <a
                 href={CAMEL_PAPER}
                 target="_blank"
@@ -283,7 +310,7 @@ export function DemoComplete({
       </h2>
       <p className="mt-5 text-[15px] leading-relaxed text-[var(--ink)]/75">
         This beat only summarizes the receipt. Next, inspect the sealed hash
-        chain — that is the proof. Policy and treasury live under Controls.
+        chain. That is the proof. Policy and treasury live under Controls.
       </p>
       {blocked ? (
         <p className="mt-4 text-[14px] leading-relaxed text-[var(--mute)]">

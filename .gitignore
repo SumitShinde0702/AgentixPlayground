@@ -40,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sqlite — track seed DB so deploys get it; ignore WAL/SHM sidecars
+/data/*
+!/data/gatex.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-*

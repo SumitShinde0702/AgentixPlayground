@@ -76,8 +76,14 @@ export default function AuditPage({
           </>
         )}
         <Link
-          href="/demo"
+          href="/receipts"
           className="mt-16 inline-block text-[12px] uppercase tracking-[0.14em]"
+        >
+          All receipts
+        </Link>
+        <Link
+          href="/demo"
+          className="mt-4 ml-6 inline-block text-[12px] uppercase tracking-[0.14em] text-[var(--mute)]"
         >
           Back to demo
         </Link>

@@ -5,6 +5,7 @@ const x402Stub = path.join(__dirname, "src/lib/wallet/x402-stub.js");
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  serverExternalPackages: ["better-sqlite3"],
   turbopack: {
     root: path.join(__dirname),
     resolveAlias: {

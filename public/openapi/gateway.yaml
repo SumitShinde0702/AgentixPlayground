@@ -1,0 +1,201 @@
+openapi: 3.1.0
+info:
+  title: GateX Agent Gateway
+  version: 0.1.0
+  description: |
+    Machine-readable contract for equipped agents (GateX skill).
+    All commercial spend must pass check → pay → receipt.
+    Optional auth via `x-gatex-key` when `GATEWAY_API_KEY` is set.
+servers:
+  - url: /
+    description: Same origin as GateX deploy
+tags:
+  - name: gateway
+    description: Skill-facing spend rail
+paths:
+  /api/gateway:
+    get:
+      tags: [gateway]
+      operationId: getManifest
+      summary: Discover gateway tools and auth requirements
+      parameters:
+        - $ref: "#/components/parameters/GatexKey"
+      responses:
+        "200":
+          description: Tool manifest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Manifest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/gateway/check:
+    post:
+      tags: [gateway]
+      operationId: checkSpend
+      summary: Evaluate spend intent against active agent policy
+      parameters:
+        - $ref: "#/components/parameters/GatexKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SpendIntent"
+      responses:
+        "200":
+          description: PASS or DENIED (application-level)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/CheckPass"
+                  - $ref: "#/components/schemas/CheckDeny"
+        "400":
+          description: Invalid intent
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/gateway/pay:
+    post:
+      tags: [gateway]
+      operationId: requestPay
+      summary: Issue one-time card, settle, revoke, seal receipt
+      parameters:
+        - $ref: "#/components/parameters/GatexKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SpendIntent"
+      responses:
+        "200":
+          description: Pay result with receiptId
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayResult"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/gateway/receipt/{id}:
+    get:
+      tags: [gateway]
+      operationId: getReceipt
+      summary: Fetch sealed hash-chained audit receipt
+      parameters:
+        - $ref: "#/components/parameters/GatexKey"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Receipt chain
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Receipt"
+        "404":
+          description: Unknown receipt
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+components:
+  parameters:
+    GatexKey:
+      name: x-gatex-key
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Required when GATEWAY_API_KEY is configured
+  responses:
+    Unauthorized:
+      description: Missing or invalid gateway key
+  schemas:
+    SpendIntent:
+      type: object
+      required: [sku, merchant, amountSgd]
+      properties:
+        sku:
+          type: string
+        merchant:
+          type: string
+        amountSgd:
+          type: number
+          minimum: 0
+        agentId:
+          type: string
+    CheckPass:
+      type: object
+      required: [ok, code, agentId]
+      properties:
+        ok:
+          type: boolean
+          enum: [true]
+        code:
+          type: string
+          enum: [PASS]
+        agentId:
+          type: string
+        mandate:
+          type: object
+    CheckDeny:
+      type: object
+      required: [ok, code, reason]
+      properties:
+        ok:
+          type: boolean
+          enum: [false]
+        code:
+          type: string
+          enum: [FROZEN, CAP, DAY, WEEK, RATE, MERCHANT, SKU, APPROVAL, EXPIRED]
+        reason:
+          type: string
+        agentId:
+          type: string
+    PayResult:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        receiptId:
+          type: string
+        card:
+          type: object
+          properties:
+            last4:
+              type: string
+            source:
+              type: string
+            settlementTx:
+              type: string
+              nullable: true
+    Receipt:
+      type: object
+      properties:
+        id:
+          type: string
+        head:
+          type: string
+        verified:
+          type: boolean
+        chain:
+          type: array
+          items:
+            type: object
+    Manifest:
+      type: object
+      properties:
+        name:
+          type: string
+        baseUrl:
+          type: string
+        skill:
+          type: string
+        auth:
+          type: object
+        tools:
+          type: array
+          items:
+            type: object

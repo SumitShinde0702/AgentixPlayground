@@ -1,4 +1,5 @@
 import { MANDATE, agentWalletAddress, mandateExpiryIso } from "@/lib/config";
+import { getDb } from "@/lib/db/sqlite";
 import { nonce } from "@/lib/hash";
 
 export type AgentPolicy = {
@@ -40,6 +41,56 @@ const HOUR_MS = 60 * 60 * 1000;
 let activeAgentId: string = MANDATE.agentId;
 const policies = new Map<string, AgentPolicy>();
 const ledgers = new Map<string, SpendLedger>();
+let hydrated = false;
+
+function hydrateFromDb() {
+  if (hydrated) return;
+  hydrated = true;
+  const db = getDb();
+  for (const row of db
+    .prepare(`SELECT agent_id, json FROM policies`)
+    .all() as { agent_id: string; json: string }[]) {
+    policies.set(row.agent_id, JSON.parse(row.json) as AgentPolicy);
+  }
+  for (const row of db
+    .prepare(`SELECT agent_id, json FROM ledgers`)
+    .all() as { agent_id: string; json: string }[]) {
+    ledgers.set(row.agent_id, JSON.parse(row.json) as SpendLedger);
+  }
+  const meta = db
+    .prepare(`SELECT value FROM meta WHERE key = 'active_agent_id'`)
+    .get() as { value: string } | undefined;
+  if (meta?.value && policies.has(meta.value)) {
+    activeAgentId = meta.value;
+  }
+}
+
+function savePolicy(policy: AgentPolicy) {
+  getDb()
+    .prepare(
+      `INSERT INTO policies (agent_id, json) VALUES (?, ?)
+       ON CONFLICT(agent_id) DO UPDATE SET json = excluded.json`,
+    )
+    .run(policy.agentId, JSON.stringify(policy));
+}
+
+function saveLedger(agentId: string, ledger: SpendLedger) {
+  getDb()
+    .prepare(
+      `INSERT INTO ledgers (agent_id, json) VALUES (?, ?)
+       ON CONFLICT(agent_id) DO UPDATE SET json = excluded.json`,
+    )
+    .run(agentId, JSON.stringify(ledger));
+}
+
+function saveActiveAgent() {
+  getDb()
+    .prepare(
+      `INSERT INTO meta (key, value) VALUES ('active_agent_id', ?)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+    )
+    .run(activeAgentId);
+}
 
 function emptyLedger(): SpendLedger {
   const now = Date.now();
@@ -74,30 +125,39 @@ function seedPolicy(did: string): AgentPolicy {
 
 /** Corporate DID is set once identity module registers the seed policy. */
 export function ensureSeedPolicy(corporateDid: string) {
+  hydrateFromDb();
   if (!policies.has(MANDATE.agentId)) {
-    policies.set(MANDATE.agentId, seedPolicy(corporateDid));
-    ledgers.set(MANDATE.agentId, emptyLedger());
+    const p = seedPolicy(corporateDid);
+    policies.set(MANDATE.agentId, p);
+    const ledger = emptyLedger();
+    ledgers.set(MANDATE.agentId, ledger);
+    savePolicy(p);
+    saveLedger(MANDATE.agentId, ledger);
   } else {
     const p = policies.get(MANDATE.agentId)!;
     if (!p.did) {
       p.did = corporateDid;
       policies.set(MANDATE.agentId, p);
+      savePolicy(p);
     }
   }
 }
 
 export function listPolicies(): AgentPolicy[] {
+  hydrateFromDb();
   return [...policies.values()].sort((a, b) =>
     a.updatedAt < b.updatedAt ? 1 : -1,
   );
 }
 
 export function getPolicy(agentId?: string): AgentPolicy | null {
+  hydrateFromDb();
   const id = agentId || activeAgentId;
   return policies.get(id) ?? null;
 }
 
 export function getActivePolicy(): AgentPolicy {
+  hydrateFromDb();
   if (!policies.has(activeAgentId)) {
     // Lazy seed before identity module finishes wiring DID
     ensureSeedPolicy("");
@@ -110,12 +170,15 @@ export function getActivePolicy(): AgentPolicy {
 }
 
 export function setActiveAgent(agentId: string) {
+  hydrateFromDb();
   if (!policies.has(agentId)) throw new Error(`Unknown agent ${agentId}`);
   activeAgentId = agentId;
+  saveActiveAgent();
   return getActivePolicy();
 }
 
 export function getActiveAgentId() {
+  hydrateFromDb();
   return activeAgentId;
 }
 
@@ -124,6 +187,7 @@ export type PolicyPatch = Partial<
 > & { agentId?: string };
 
 export function upsertPolicy(patch: PolicyPatch & { agentId: string; did?: string; label?: string }) {
+  hydrateFromDb();
   const existing = policies.get(patch.agentId);
   const next: AgentPolicy = {
     agentId: patch.agentId,
@@ -157,16 +221,23 @@ export function upsertPolicy(patch: PolicyPatch & { agentId: string; did?: strin
     principal: patch.principal ?? existing?.principal ?? MANDATE.principal,
   };
   policies.set(next.agentId, next);
-  if (!ledgers.has(next.agentId)) ledgers.set(next.agentId, emptyLedger());
+  savePolicy(next);
+  if (!ledgers.has(next.agentId)) {
+    const ledger = emptyLedger();
+    ledgers.set(next.agentId, ledger);
+    saveLedger(next.agentId, ledger);
+  }
   return next;
 }
 
 export function freezeAgent(agentId: string, frozen = true) {
+  hydrateFromDb();
   const p = policies.get(agentId);
   if (!p) throw new Error(`Unknown agent ${agentId}`);
   p.status = frozen ? "frozen" : "active";
   p.updatedAt = new Date().toISOString();
   policies.set(agentId, p);
+  savePolicy(p);
   return p;
 }
 
@@ -179,12 +250,14 @@ function rollBucket(bucket: SpendBucket, windowMs: number, now: number) {
 }
 
 export function getSpendSnapshot(agentId = activeAgentId) {
+  hydrateFromDb();
   const ledger = ledgers.get(agentId) ?? emptyLedger();
   const now = Date.now();
   rollBucket(ledger.day, DAY_MS, now);
   rollBucket(ledger.week, WEEK_MS, now);
   rollBucket(ledger.hour, HOUR_MS, now);
   ledgers.set(agentId, ledger);
+  saveLedger(agentId, ledger);
   return {
     daySpentSgd: ledger.day.amountSgd,
     weekSpentSgd: ledger.week.amountSgd,
@@ -232,6 +305,7 @@ export function checkSpendLimits(
 }
 
 export function recordSpend(amountSgd: number, agentId = activeAgentId) {
+  hydrateFromDb();
   const ledger = ledgers.get(agentId) ?? emptyLedger();
   const now = Date.now();
   rollBucket(ledger.day, DAY_MS, now);
@@ -241,12 +315,16 @@ export function recordSpend(amountSgd: number, agentId = activeAgentId) {
   ledger.week.amountSgd += amountSgd;
   ledger.hour.count += 1;
   ledgers.set(agentId, ledger);
+  saveLedger(agentId, ledger);
   return getSpendSnapshot(agentId);
 }
 
 /** Demo theater: clear spend buckets so a fresh 1→4 pass is not CAP-blocked. */
 export function resetSpendLedger(agentId = activeAgentId) {
-  ledgers.set(agentId, emptyLedger());
+  hydrateFromDb();
+  const ledger = emptyLedger();
+  ledgers.set(agentId, ledger);
+  saveLedger(agentId, ledger);
   return getSpendSnapshot(agentId);
 }
 

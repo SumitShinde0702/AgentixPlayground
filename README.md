@@ -4,6 +4,8 @@ Agents that buy, without being hijacked.
 
 Identity, CaMeL isolation, a control plane for spend policy, an equippable agent **skill**, one-time StraitsX XSGD cards, and x402 settlement on Avalanche. Built for the [AgentiX Playground](https://www.straitsx.com/agentix-playground) hackathon.
 
+**Architecture:** [`ARCHITECTURE.md`](ARCHITECTURE.md) · **Hackathon links:** [`HACKATHON-LINKS.md`](HACKATHON-LINKS.md)
+
 ## Run
 
 ```bash
@@ -20,6 +22,7 @@ Open [http://localhost:3000](http://localhost:3000) → **Set the rules** (`/con
 | `/` | Landing (includes skill terminal demo) |
 | `/controls` | Treasury, per-agent policy, NL + hard limits |
 | `/skill` | Download Cursor skill + gateway docs |
+| `/architecture` | Architecture overview for judges |
 | `/demo` | Split theater (keys `1`–`4`, space) |
 | `/console` | Mandate, agent, card, receipt |
 | `/supplier` | Helix catalog with hidden injection |

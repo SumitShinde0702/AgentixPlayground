@@ -15,15 +15,21 @@ export function SiteNav({ dim = false }: { dim?: boolean }) {
       <Link href="/" className={`display text-[17px] ${ink}`}>
         GateX
       </Link>
-      <nav className="flex items-center gap-8 text-[12px] uppercase tracking-[0.16em]">
-        <Link href="/demo" className={link}>
-          Demo
-        </Link>
+      <nav className="flex flex-wrap items-center justify-end gap-x-6 gap-y-2 text-[12px] uppercase tracking-[0.16em] md:gap-x-8">
         <Link href="/controls" className={link}>
           Controls
         </Link>
         <Link href="/skill" className={link}>
           Skill
+        </Link>
+        <Link href="/demo" className={link}>
+          Demo
+        </Link>
+        <Link href="/receipts" className={link}>
+          Receipts
+        </Link>
+        <Link href="/architecture" className={link}>
+          Architecture
         </Link>
         <Link href="/console" className={link}>
           Console

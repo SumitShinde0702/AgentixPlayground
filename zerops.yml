@@ -3,6 +3,9 @@ zerops:
   - setup: nodejs
     build:
       base: alpine/nodejs@24
+      # better-sqlite3 may need a native compile on Alpine
+      prepareCommands:
+        - sudo apk add --no-cache python3 make g++
       buildCommands:
         - npm i
         - npm run build

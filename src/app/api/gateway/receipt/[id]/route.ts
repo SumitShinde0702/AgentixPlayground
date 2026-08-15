@@ -3,6 +3,8 @@ import { assertGatewayAuth } from "@/lib/gateway/auth";
 import { getAudit, verifyChain } from "@/lib/audit";
 import { agents } from "@/lib/identity";
 
+export const runtime = "nodejs";
+
 export async function GET(
   req: Request,
   ctx: { params: Promise<{ id: string }> },
