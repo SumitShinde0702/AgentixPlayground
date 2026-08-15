@@ -1,6 +1,7 @@
 "use client";
 
 import { CamelDiagram } from "@/components/camel-diagram";
+import { SkillTerminalDemo } from "@/components/skill-terminal-demo";
 import ScrollReveal from "@/components/ui/scroll-reveal";
 import { FlipWords } from "@/components/ui/flip-words";
 import { MovingBorderButton } from "@/components/ui/moving-border";
@@ -11,6 +12,10 @@ const pitch = [
   {
     title: "Controls",
     body: "Connect treasury. Set spend, rate, and approval rules in plain language. Freeze anytime.",
+  },
+  {
+    title: "Skill",
+    body: "Equip Secure-Procure. Outside agents must settle through your gateway — policy first, then one-time card.",
   },
   {
     title: "Identity",
@@ -30,7 +35,7 @@ const pitch = [
   },
 ] as const;
 
-const flipWords = ["control", "block", "isolate", "settle", "revoke"];
+const flipWords = ["control", "equip", "block", "isolate", "settle", "revoke"];
 
 export function LandingPitch() {
   return (
@@ -81,12 +86,28 @@ export function LandingPitch() {
             </div>
           </section>
 
+          <section className="border-t border-white/10 py-28 md:py-36">
+            <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-16">
+              <div>
+                <ScrollReveal textClassName="display text-[clamp(2.6rem,5.5vw,5rem)] text-[var(--paper)] leading-[0.95]">
+                  Equip the skill.
+                </ScrollReveal>
+                <p className="mt-6 max-w-[36ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
+                  Other agents download Secure-Procure. Every purchase hits your
+                  gateway — check, pay, receipt — so spend never skips policy.
+                </p>
+              </div>
+              <SkillTerminalDemo />
+            </div>
+          </section>
+
           <section className="border-t border-white/10 pt-28 pb-8 md:pt-36">
             <h2 className="display text-[clamp(2.6rem,5.5vw,5rem)] text-[var(--paper)]">
-              Five beats.
+              Six beats.
             </h2>
             <p className="mt-6 max-w-[42ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
-              Control plane first — then identity, isolation, settlement, proof.
+              Control plane, equippable skill, then identity, isolation,
+              settlement, proof.
             </p>
             <p className="display mt-8 text-[clamp(1.8rem,3.5vw,2.8rem)]">
               <span className="text-[var(--paper)]/45">We </span>

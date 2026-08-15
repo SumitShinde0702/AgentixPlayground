@@ -1,0 +1,17 @@
+# AWS App Runner — thin deploy for this Next.js app
+# Secrets: set in App Runner console (Configuration → Environment variables), not here.
+version: 1.0
+runtime: nodejs22
+build:
+  commands:
+    build:
+      - npm ci
+      - npm run build
+run:
+  command: npm start
+  network:
+    port: 3000
+    env: PORT
+  env:
+    - name: NODE_ENV
+      value: production

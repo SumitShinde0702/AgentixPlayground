@@ -37,10 +37,10 @@ const NL_EXAMPLES = [
   "Freeze the agent",
 ];
 
-function sleepVerdict(sleep: Sleep) {
-  if (sleep.score >= 85) return "You can sleep";
-  if (sleep.score >= 60) return "Almost sleep-ready";
-  return "Not safe to leave yet";
+function policyVerdict(sleep: Sleep) {
+  if (sleep.score >= 85) return "Policy locked";
+  if (sleep.score >= 60) return "Policy needs tightening";
+  return "Policy incomplete";
 }
 
 export function ControlsView() {
@@ -108,7 +108,7 @@ export function ControlsView() {
       });
       setPending(null);
       setNl("");
-      setFlash("Rails updated for this agent.");
+      setFlash("Policy saved for this agent.");
       await load();
     } finally {
       setBusy(false);
@@ -200,13 +200,13 @@ export function ControlsView() {
           Control plane
         </p>
         <h1 className="display mt-4 text-[clamp(2.8rem,7vw,4.8rem)]">
-          Go home.
+          Bound every
           <br />
-          Sleep.
+          agent spend.
         </h1>
-        <p className="mt-6 max-w-[38ch] text-[17px] leading-relaxed text-[var(--ink)]/70">
-          Set each agent’s rails. Go home. They cannot exceed them while you’re
-          away.
+        <p className="mt-6 max-w-[40ch] text-[17px] leading-relaxed text-[var(--ink)]/70">
+          Define hard limits, merchant allowlists, and approval thresholds.
+          Agents cannot exceed these rails — even when no one is watching.
         </p>
 
         {flash ? (
@@ -328,7 +328,8 @@ export function ControlsView() {
                           Natural language
                         </p>
                         <p className="mt-2 text-[15px] text-[var(--ink)]/70">
-                          While you’re away, this agent may only…
+                          Describe hard limits in plain English — they map onto
+                          the controls below.
                         </p>
                         <textarea
                           value={nl}
@@ -494,7 +495,7 @@ export function ControlsView() {
                         ) : null}
                       </div>
 
-                      {/* You can sleep */}
+                      {/* Policy status */}
                       <div className="mt-10 border-t border-[var(--line)] pt-8">
                         <p
                           className={`display text-[clamp(1.6rem,3vw,2.2rem)] ${
@@ -503,15 +504,15 @@ export function ControlsView() {
                               : "text-[var(--ink)]"
                           }`}
                         >
-                          {sleepVerdict(p.sleep)}
+                          {policyVerdict(p.sleep)}
                         </p>
                         <p className="mt-2 max-w-[40ch] text-[14px] text-[var(--ink)]/65">
-                          While you’re away, this agent stays inside these
-                          rails — or it’s frozen.
+                          Enforced at mandate check, card issue, and RHA
+                          approval — before any XSGD moves.
                         </p>
                         <details className="mt-4 text-[13px] text-[var(--mute)]">
                           <summary className="cursor-pointer uppercase tracking-[0.12em]">
-                            Why
+                            Coverage
                           </summary>
                           <ul className="mt-3 space-y-2">
                             {p.sleep.checks.map((c) => (

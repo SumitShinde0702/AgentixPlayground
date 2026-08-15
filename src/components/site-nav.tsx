@@ -22,6 +22,9 @@ export function SiteNav({ dim = false }: { dim?: boolean }) {
         <Link href="/controls" className={link}>
           Controls
         </Link>
+        <Link href="/skill" className={link}>
+          Skill
+        </Link>
         <Link href="/console" className={link}>
           Console
         </Link>

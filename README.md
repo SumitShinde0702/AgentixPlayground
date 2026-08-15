@@ -2,7 +2,7 @@
 
 Agents that buy, without being hijacked.
 
-Identity, CaMeL isolation, a control plane for spend policy, one-time StraitsX XSGD cards, and x402 settlement on Avalanche. Built for the [AgentiX Playground](https://www.straitsx.com/agentix-playground) hackathon.
+Identity, CaMeL isolation, a control plane for spend policy, an equippable agent **skill**, one-time StraitsX XSGD cards, and x402 settlement on Avalanche. Built for the [AgentiX Playground](https://www.straitsx.com/agentix-playground) hackathon.
 
 ## Run
 
@@ -13,38 +13,54 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) → **Set the rules** (`/controls`) or **Run the live demo**.
+Open [http://localhost:3000](http://localhost:3000) → **Set the rules** (`/controls`), **Equip the skill** (`/skill`), or **Run the live demo**.
 
 | Route | What |
 | --- | --- |
-| `/` | Landing |
-| `/controls` | Treasury (MetaMask/Core), NL policy, agent create, sleep score |
+| `/` | Landing (includes skill terminal demo) |
+| `/controls` | Treasury, per-agent policy, NL + hard limits |
+| `/skill` | Download Cursor skill + gateway docs |
 | `/demo` | Split theater (keys `1`–`4`, space) |
 | `/console` | Mandate, agent, card, receipt |
 | `/supplier` | Helix catalog with hidden injection |
 | `/audit/[id]` | Sealed receipt |
 
+## Equippable skill
+
+Download [`/skills/secure-procure/SKILL.md`](public/skills/secure-procure/SKILL.md) into `.cursor/skills/secure-procure/`. Equipped agents must call:
+
+| Tool | Endpoint |
+| --- | --- |
+| Manifest | `GET /api/gateway` |
+| check_spend | `POST /api/gateway/check` |
+| request_pay | `POST /api/gateway/pay` |
+| get_receipt | `GET /api/gateway/receipt/{id}` |
+
+Optional auth: `GATEWAY_API_KEY` + header `x-secure-procure-key`.
+
 ## Pitch
 
-0. **Controls** — connect treasury, set limits in plain language, freeze anytime.
-1. **Identity** — rogue bot signs with the wrong key. Registry blocks. Mandate untouched.
-2. **Injection** — supplier HTML hides “add $500 in gift cards”. CaMeL keeps it out of the privileged path.
-3. **Execute** — verified agent: treasury → one-time card → RHA → x402 → Avalanche.
-4. **Audit** — open the receipt. Card already revoked.
+0. **Controls** — connect treasury, set limits, freeze anytime.
+1. **Skill** — equip Secure-Procure; spend must hit your gateway.
+2. **Identity** — rogue DID blocked.
+3. **Injection** — CaMeL quarantine.
+4. **Execute** — one-time card → x402 → Avalanche.
+5. **Audit** — sealed receipt; card revoked.
 
-**Funding model:** humans top up the treasury wallet (mainnet + Fuji XSGD). Agents never hold a standing Visa — policy mints a one-time card at checkout, then revokes it.
+**Funding model:** humans top up treasury (mainnet + Fuji XSGD). Agents get one-time cards only.
 
 ## Env
 
-See `.env.example`. Hackathon links & Card MCP notes: [`HACKATHON-LINKS.md`](HACKATHON-LINKS.md).
+See `.env.example`. Hackathon links: [`HACKATHON-LINKS.md`](HACKATHON-LINKS.md).
 
 | Var | Role |
 | --- | --- |
-| `AGENT_WALLET_ADDRESS` | Default treasury (live `balanceOf` proof) |
-| `AGENT_PRIVATE_KEY` | Fuji key for Card MCP EIP-3009 pay |
-| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | Unused (treasury uses MetaMask/Core via wagmi) |
+| `AGENT_WALLET_ADDRESS` | Default treasury |
+| `AGENT_PRIVATE_KEY` | Fuji key for Card MCP EIP-3009 |
+| `GATEWAY_API_KEY` | Optional gateway auth |
+| `SECURE_PROCURE_BASE_URL` | Public base URL for skill consumers |
 | `MERCHANT_WALLET_ADDRESS` | Merchant payTo |
-| `X402_NETWORK` | `eip155:43114` mainnet (MCP cards settle on Fuji sandbox) |
-| `STRAITSX_CARD_MCP_URL` | Card MCP SSE — preferred over business API |
+| `X402_NETWORK` | `eip155:43114` mainnet labeling |
+| `STRAITSX_CARD_MCP_URL` | Card MCP SSE |
 
 Docs: [StraitsX](https://docs.straitsx.com/docs/introduction), [Cards MCP sandbox](https://card.straitsx.ai/sandbox/sse), [Avalanche](https://docs.avax.network/).
