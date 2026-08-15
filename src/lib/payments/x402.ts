@@ -1,4 +1,9 @@
-import { XSGD, facilitatorUrl, x402Network } from "@/lib/config";
+import {
+  XSGD,
+  facilitatorUrl,
+  merchantWalletAddress,
+  x402Network,
+} from "@/lib/config";
 import { nonce, sha256 } from "@/lib/hash";
 
 export type PaymentRequired = {
@@ -10,20 +15,69 @@ export type PaymentRequired = {
   extra: { name: string; version: string };
 };
 
-let lastSettlement: {
+export type Settlement = {
   txHash: string;
   network: string;
   asset: string;
   amount: string;
   at: string;
-  source: "sandbox" | "facilitator";
+  source: "simulated" | "avalanche";
+  payTo: string;
+  snowtrace?: string;
+};
+
+let lastSettlement: Settlement | null = null;
+let livePending: {
+  txHash: string;
+  amountSgd: number;
+  payTo: string;
+  network: string;
 } | null = null;
 
 export function getLastSettlement() {
   return lastSettlement;
 }
 
-export function paymentRequirements(amountAtomic: string, payTo: string): PaymentRequired {
+export function getLivePending() {
+  return livePending;
+}
+
+function snowtraceBase(network: string) {
+  return network === "eip155:43113"
+    ? "https://testnet.snowtrace.io"
+    : "https://snowtrace.io";
+}
+
+export function recordLiveSettlement(opts: {
+  txHash: string;
+  amountSgd: number;
+  payTo: string;
+  network?: string;
+}) {
+  const network = opts.network ?? x402Network();
+  livePending = {
+    txHash: opts.txHash,
+    amountSgd: opts.amountSgd,
+    payTo: opts.payTo,
+    network,
+  };
+  lastSettlement = {
+    txHash: opts.txHash,
+    network,
+    asset: XSGD.symbol,
+    amount: String(opts.amountSgd),
+    at: new Date().toISOString(),
+    source: "avalanche",
+    payTo: opts.payTo,
+    snowtrace: `${snowtraceBase(network)}/tx/${opts.txHash}`,
+  };
+  return lastSettlement;
+}
+
+export function paymentRequirements(
+  amountAtomic: string,
+  payTo: string,
+): PaymentRequired {
   return {
     scheme: "exact",
     network: x402Network(),
@@ -42,14 +96,19 @@ export function sgdToAtomic(sgd: number) {
   return String(Math.round(sgd * 10 ** XSGD.decimals));
 }
 
+function payToAddress() {
+  return (
+    merchantWalletAddress() ||
+    "0xApexProcureTreasury000000000000000001"
+  );
+}
+
 export async function settlePayment(opts: {
   amountSgd: number;
   payload?: string;
 }) {
-  const req = paymentRequirements(
-    sgdToAtomic(opts.amountSgd),
-    process.env.CROSSMINT_WALLET_ADDRESS ?? "0xApexProcureTreasury000000000000000001",
-  );
+  const payTo = payToAddress();
+  const req = paymentRequirements(sgdToAtomic(opts.amountSgd), payTo);
 
   if (!opts.payload) {
     return {
@@ -65,15 +124,31 @@ export async function settlePayment(opts: {
     };
   }
 
-  const txHash = `0x${sha256(`x402:${opts.payload}:${nonce(8)}`).slice(0, 64)}`;
-  lastSettlement = {
-    txHash,
-    network: req.network,
-    asset: XSGD.symbol,
-    amount: String(opts.amountSgd),
-    at: new Date().toISOString(),
-    source: process.env.CROSSMINT_API_KEY ? "facilitator" : "sandbox",
-  };
+  if (livePending) {
+    const network = livePending.network || req.network;
+    lastSettlement = {
+      txHash: livePending.txHash,
+      network,
+      asset: XSGD.symbol,
+      amount: String(opts.amountSgd),
+      at: new Date().toISOString(),
+      source: "avalanche",
+      payTo: livePending.payTo || payTo,
+      snowtrace: `${snowtraceBase(network)}/tx/${livePending.txHash}`,
+    };
+    livePending = null;
+  } else {
+    const txHash = `0x${sha256(`x402:${opts.payload}:${nonce(8)}`).slice(0, 64)}`;
+    lastSettlement = {
+      txHash,
+      network: req.network,
+      asset: XSGD.symbol,
+      amount: String(opts.amountSgd),
+      at: new Date().toISOString(),
+      source: "simulated",
+      payTo,
+    };
+  }
 
   return {
     status: 200 as const,
@@ -85,7 +160,7 @@ export async function settlePayment(opts: {
     body: {
       ok: true,
       settlement: lastSettlement,
-      wallet: process.env.CROSSMINT_WALLET_ADDRESS ?? "sandbox-evm",
+      wallet: payTo,
     },
   };
 }

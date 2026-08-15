@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Syne } from "next/font/google";
+import { WalletProviders } from "@/components/wallet/providers";
 import "./globals.css";
 
 const syne = Syne({
@@ -38,7 +39,7 @@ export default function RootLayout({
     >
       <body className="ledger min-h-full bg-[var(--paper)] text-[var(--ink)]">
         <div className="grain" aria-hidden />
-        {children}
+        <WalletProviders>{children}</WalletProviders>
       </body>
     </html>
   );

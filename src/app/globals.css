@@ -62,3 +62,9 @@ body {
 .mono {
   font-family: var(--font-ibm-mono), ui-monospace, monospace;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero-video {
+    display: none;
+  }
+}

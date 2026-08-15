@@ -1,8 +1,14 @@
 import { generateKeyPairSync, sign, verify, type KeyObject } from "node:crypto";
 import { MANDATE } from "@/lib/config";
 import { nonce, sha256 } from "@/lib/hash";
+import {
+  ensureSeedPolicy,
+  getActivePolicy,
+  newAgentId,
+  upsertPolicy,
+} from "@/lib/policy/store";
 
-export type AgentRole = "corporate" | "rogue";
+export type AgentRole = "corporate" | "rogue" | "enrolled";
 
 export type AgentRecord = {
   id: string;
@@ -28,15 +34,49 @@ const registry = new Map<string, AgentRecord>([
   [corporate.did, corporate],
 ]);
 
+ensureSeedPolicy(corporate.did);
+
 export const agents = { corporate, rogue };
 
+export function listRegistryAgents() {
+  return [...registry.values()].map((a) => ({
+    id: a.id,
+    did: a.did,
+    label: a.label,
+    role: a.role,
+  }));
+}
+
+export function enrollAgent(opts: { label: string }) {
+  const label = opts.label.trim() || "New agent";
+  const id = newAgentId(label);
+  const record = makeAgent(id, "enrolled", label);
+  registry.set(record.did, record);
+  const policy = upsertPolicy({
+    agentId: id,
+    label,
+    did: record.did,
+    status: "active",
+  });
+  return { agent: { id: record.id, did: record.did, label: record.label }, policy };
+}
+
+export function getRegistryAgent(did: string) {
+  return registry.get(did) ?? null;
+}
+
 export function mandateHash() {
+  const p = getActivePolicy();
   return sha256(
     JSON.stringify({
-      sku: MANDATE.sku,
-      capSgd: MANDATE.capSgd,
-      merchants: MANDATE.merchants,
-      agentId: MANDATE.agentId,
+      sku: p.skuAllowlist[0],
+      skus: p.skuAllowlist,
+      capSgd: p.maxPerDaySgd,
+      maxPerTx: p.maxPerTxSgd,
+      merchants: p.merchants,
+      agentId: p.agentId,
+      requireApprovalOverSgd: p.requireApprovalOverSgd,
+      status: p.status,
     }),
   );
 }

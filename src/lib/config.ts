@@ -18,8 +18,58 @@ export const XSGD = {
   decimals: 6,
 } as const;
 
+/** Agent funding wallet — holds XSGD (balanceOf proof). */
+export function agentWalletAddress() {
+  return process.env.AGENT_WALLET_ADDRESS?.trim() || "";
+}
+
+/** Merchant / x402 payTo — receiver of settlement. */
+export function merchantWalletAddress() {
+  return (
+    process.env.MERCHANT_WALLET_ADDRESS?.trim() ||
+    process.env.CROSSMINT_WALLET_ADDRESS?.trim() ||
+    ""
+  );
+}
+
 export function x402Network() {
-  return process.env.X402_NETWORK ?? "eip155:43113";
+  return process.env.X402_NETWORK ?? "eip155:43114";
+}
+
+export function avalancheChainId() {
+  const net = x402Network();
+  if (net === "eip155:43113") return 43113;
+  return 43114;
+}
+
+export function avalancheRpcUrl() {
+  return avalancheChainId() === 43113
+    ? "https://api.avax-test.network/ext/bc/C/rpc"
+    : "https://api.avax.network/ext/bc/C/rpc";
+}
+
+export function snowtraceAddressUrl(address: string) {
+  const base =
+    avalancheChainId() === 43113
+      ? "https://testnet.snowtrace.io"
+      : "https://snowtrace.io";
+  return `${base}/address/${address}`;
+}
+
+export function snowtraceTxUrl(txHash: string) {
+  const base =
+    avalancheChainId() === 43113
+      ? "https://testnet.snowtrace.io"
+      : "https://snowtrace.io";
+  return `${base}/tx/${txHash}`;
+}
+
+export function snowtraceTokenUrl(holder: string) {
+  const base =
+    avalancheChainId() === 43113
+      ? "https://testnet.snowtrace.io"
+      : "https://snowtrace.io";
+  return `${base}/token/${XSGD.address}?a=${holder}`;
 }
 
 export function straitsxHost() {
