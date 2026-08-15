@@ -6,9 +6,9 @@ import Link from "next/link";
 import type { RunEvent } from "@/lib/run/types";
 import { DustTransferButton } from "@/components/dust-transfer";
 import {
+  DemoComplete,
   DemoPhaseBriefing,
   DemoWelcome,
-  shouldShowDemoWelcome,
   type DemoPhase,
 } from "@/components/demo-briefing";
 import { linkify } from "@/components/linkify";
@@ -67,13 +67,11 @@ export function DemoTheater() {
   const [receiptId, setReceiptId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [proof, setProof] = useState<ProofState>({});
-  const [welcomeOpen, setWelcomeOpen] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(true);
   const [briefingPhase, setBriefingPhase] = useState<DemoPhase | null>(null);
+  const [completeOpen, setCompleteOpen] = useState(false);
+  const [completeBlocked, setCompleteBlocked] = useState(false);
   const abort = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (shouldShowDemoWelcome()) setWelcomeOpen(true);
-  }, []);
 
   const push = (lane: "rogue" | "corporate", line: LogLine) => {
     if (lane === "rogue") setLeft((xs) => [...xs.slice(-14), line]);
@@ -181,8 +179,14 @@ export function DemoTheater() {
             if (ev.done) continue;
             if (!ev.line) continue;
             push(ev.lane, { text: ev.line, status: ev.status });
-            if (ev.status === "BLOCK" || ev.status === "PASS")
-              setStatus(ev.status);
+            // Audit seal lines are PASS but must not overwrite a BLOCK outcome (phase 1).
+            if (ev.status === "BLOCK") setStatus("BLOCK");
+            else if (
+              ev.status === "PASS" &&
+              !ev.line.startsWith("Audit ")
+            ) {
+              setStatus("PASS");
+            }
             if (ev.line.startsWith("Audit ")) {
               setReceiptId(ev.line.split(" ")[1]);
             }
@@ -299,12 +303,30 @@ export function DemoTheater() {
           });
         }
         setStatus("PASS");
+        let blocked = false;
+        if (id) {
+          try {
+            const auditRes = await fetch(`/api/audit/${id}`);
+            if (auditRes.ok) {
+              const log = (await auditRes.json()) as {
+                chain?: { event: { detail?: { blocked?: boolean } } }[];
+              };
+              const last = log.chain?.[log.chain.length - 1];
+              blocked = Boolean(last?.event?.detail?.blocked);
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+        setCompleteBlocked(blocked);
+        setCompleteOpen(true);
       }
     },
     [stream, refreshProofFromState],
   );
 
   const requestPhase = useCallback((n: DemoPhase) => {
+    setCompleteOpen(false);
     setBriefingPhase(n);
   }, []);
 
@@ -315,7 +337,8 @@ export function DemoTheater() {
     void runPhase(n);
   }, [briefingPhase, runPhase]);
 
-  const overlayOpen = welcomeOpen || briefingPhase != null;
+  const overlayOpen =
+    welcomeOpen || briefingPhase != null || completeOpen;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -326,13 +349,17 @@ export function DemoTheater() {
       if (e.key === "4") requestPhase(4);
       if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
+        if (phase === 4 && receiptId) {
+          setCompleteOpen(true);
+          return;
+        }
         const next = phase < 4 ? ((phase + 1) as DemoPhase) : 1;
         requestPhase(next);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [phase, requestPhase, overlayOpen]);
+  }, [phase, requestPhase, overlayOpen, receiptId]);
 
   const tone =
     status === "BLOCK"
@@ -348,6 +375,13 @@ export function DemoTheater() {
       ) : null}
       {briefingPhase != null ? (
         <DemoPhaseBriefing phase={briefingPhase} onContinue={continuePhase} />
+      ) : null}
+      {completeOpen ? (
+        <DemoComplete
+          receiptId={receiptId}
+          blocked={completeBlocked}
+          onStay={() => setCompleteOpen(false)}
+        />
       ) : null}
       <div className="flex items-end justify-between px-6 py-6 md:px-10">
         <p className="display text-[clamp(2.2rem,5vw,4.2rem)]">
@@ -390,7 +424,7 @@ export function DemoTheater() {
           accent="pass"
           idle={
             phase === 1
-              ? "Idle until key 3"
+              ? "Waits here — press 3 for the authorized buy"
               : phase === 3
                 ? "Press 3 — authorized run"
                 : "Waiting"
@@ -599,6 +633,7 @@ function ProofPanel({
           <EvidenceBlock
             label="Receipt"
             body={proof.audit?.id ?? "Run 1 or 3 first"}
+            href={proof.audit?.id ? `/audit/${proof.audit.id}` : undefined}
           />
           <EvidenceBlock
             label="Chain head"
@@ -619,12 +654,26 @@ function ProofPanel({
             </p>
           )}
           {proof.audit?.id ? (
-            <Link
-              href={`/audit/${proof.audit.id}`}
-              className="text-[12px] uppercase tracking-[0.14em] text-[var(--pass)] underline-offset-4 hover:underline md:col-span-2"
-            >
-              Inspect sealed hash chain →
-            </Link>
+            <div className="md:col-span-2 border-t border-[var(--line)] pt-4">
+              <p className="text-[13px] leading-relaxed text-[var(--ink)]/75">
+                Demo complete. Next: open the sealed receipt — the hash chain is
+                the proof. Then set policy on Controls if you haven’t.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-4">
+                <Link
+                  href={`/audit/${proof.audit.id}`}
+                  className="border border-[var(--ink)] bg-[var(--ink)] px-5 py-3 text-[12px] uppercase tracking-[0.14em] text-[var(--paper)]"
+                >
+                  Open sealed receipt
+                </Link>
+                <Link
+                  href="/controls"
+                  className="border border-[var(--line)] px-5 py-3 text-[12px] uppercase tracking-[0.14em] text-[var(--ink)]"
+                >
+                  Set the rules
+                </Link>
+              </div>
+            </div>
           ) : null}
         </div>
       ) : null}
@@ -651,27 +700,44 @@ function EvidenceBlock({
   label,
   body,
   tone,
+  href,
 }: {
   label: string;
   body: string;
   tone?: "pass" | "block";
+  href?: string;
 }) {
   return (
     <div>
       <p className="mb-1 text-[11px] uppercase tracking-[0.14em] text-[var(--mute)]">
         {label}
       </p>
-      <p
-        className={`mono break-all text-[12px] leading-relaxed ${
-          tone === "pass"
-            ? "text-[var(--pass)]"
-            : tone === "block"
-              ? "text-[var(--block)]"
-              : "text-[var(--ink)]"
-        }`}
-      >
-        {linkify(body, { tone })}
-      </p>
+      {href ? (
+        <Link
+          href={href}
+          className={`mono break-all text-[12px] leading-relaxed underline underline-offset-2 ${
+            tone === "pass"
+              ? "text-[var(--pass)]"
+              : tone === "block"
+                ? "text-[var(--block)]"
+                : "text-[var(--pass)]"
+          }`}
+        >
+          {body}
+        </Link>
+      ) : (
+        <p
+          className={`mono break-all text-[12px] leading-relaxed ${
+            tone === "pass"
+              ? "text-[var(--pass)]"
+              : tone === "block"
+                ? "text-[var(--block)]"
+                : "text-[var(--ink)]"
+          }`}
+        >
+          {linkify(body, { tone })}
+        </p>
+      )}
     </div>
   );
 }

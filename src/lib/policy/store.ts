@@ -244,6 +244,12 @@ export function recordSpend(amountSgd: number, agentId = activeAgentId) {
   return getSpendSnapshot(agentId);
 }
 
+/** Demo theater: clear spend buckets so a fresh 1→4 pass is not CAP-blocked. */
+export function resetSpendLedger(agentId = activeAgentId) {
+  ledgers.set(agentId, emptyLedger());
+  return getSpendSnapshot(agentId);
+}
+
 export function sleepScore(policy = getActivePolicy()) {
   const checks = [
     {

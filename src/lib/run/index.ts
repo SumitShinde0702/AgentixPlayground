@@ -21,7 +21,7 @@ import { liveFundingSnapshot } from "@/lib/avalanche/xsgd";
 import { patchConsole } from "@/lib/state";
 import { nonce } from "@/lib/hash";
 import { supplierDocument } from "@/lib/supplier/content";
-import { getActivePolicy, recordSpend } from "@/lib/policy/store";
+import { getActivePolicy, recordSpend, resetSpendLedger } from "@/lib/policy/store";
 import type { RunEvent, RunLane } from "@/lib/run/types";
 
 export type { RunEvent, RunLane } from "@/lib/run/types";
@@ -39,6 +39,11 @@ export async function* runLane(lane: RunLane): AsyncGenerator<RunEvent> {
     status,
     line,
   });
+
+  // Phase 1 (rogue) clears spend so a full theater pass is not CAP-blocked.
+  if (lane === "rogue") {
+    resetSpendLedger();
+  }
 
   const auditId = `rcpt_${nonce(5)}`;
   startAudit(auditId);
@@ -210,11 +215,19 @@ export async function* runLane(lane: RunLane): AsyncGenerator<RunEvent> {
     settlementTx: issued.card.settlementTx,
     network: issued.card.network,
   });
-  yield emit(
-    3,
-    "PASS",
-    `${issued.card.source} card ····${issued.card.last4} · cap S$${issued.card.limitSgd}`,
-  );
+  if (issued.card.source === "mcp") {
+    yield emit(
+      3,
+      "PASS",
+      `mcp card ····${issued.card.last4} · cap S$${issued.card.limitSgd}`,
+    );
+  } else {
+    yield emit(
+      3,
+      "info",
+      `local stand-in card ····${issued.card.last4} — MCP settle did not complete (see note above)`,
+    );
+  }
   if (issued.card.settlementTx) {
     recordLiveSettlement({
       txHash: issued.card.settlementTx,
@@ -268,16 +281,16 @@ export async function* runLane(lane: RunLane): AsyncGenerator<RunEvent> {
     paid.body.settlement.source === "avalanche" ? "on-chain" : "simulated";
   yield emit(
     3,
-    "PASS",
-    `XSGD ${settleLabel} ${paid.body.settlement.network} · ${paid.body.settlement.txHash.slice(0, 16)}…`,
+    paid.body.settlement.source === "avalanche" ? "PASS" : "info",
+    `Merchant XSGD ${settleLabel} ${paid.body.settlement.network} · ${paid.body.settlement.txHash.slice(0, 16)}…`,
   );
   if (paid.body.settlement.snowtrace) {
     yield emit(3, "PASS", `Snowtrace ${paid.body.settlement.snowtrace}`);
-  } else {
+  } else if (issued.card.source !== "mcp") {
     yield emit(
       3,
       "info",
-      "Settlement simulated — MCP card needs AGENT_PRIVATE_KEY + Fuji test XSGD for real settlement_tx",
+      "Merchant settle is simulated until MCP card issues with a real settlement_tx (Fuji XSGD + working settle)",
     );
   }
 

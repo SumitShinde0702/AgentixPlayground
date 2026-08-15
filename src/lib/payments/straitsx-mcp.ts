@@ -1,4 +1,12 @@
 import { randomBytes } from "node:crypto";
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  parseAbi,
+  parseSignature,
+} from "viem";
+import { avalanche, avalancheFuji } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { agentWalletAddress, straitsxCardMcpUrl } from "@/lib/config";
 
@@ -375,7 +383,85 @@ async function signEip3009Payment(accept: PaymentAccept, from: `0x${string}`) {
       network: accept.network,
       payload: authPayload,
     }),
+    auth: authPayload.authorization,
+    signature,
   };
+}
+
+/** When StraitsX's facilitator 500s, settle EIP-3009 ourselves on Fuji/mainnet. */
+async function broadcastTransferWithAuthorization(
+  accept: PaymentAccept,
+  auth: {
+    from: string;
+    to: string;
+    value: string;
+    validAfter: string;
+    validBefore: string;
+    nonce: string;
+  },
+  signature: `0x${string}`,
+): Promise<{ ok: true; txHash: `0x${string}` } | { ok: false; reason: string }> {
+  const pk = process.env.AGENT_PRIVATE_KEY?.trim();
+  if (!pk) return { ok: false, reason: "AGENT_PRIVATE_KEY missing" };
+
+  const chain = accept.chainId === 43113 ? avalancheFuji : avalanche;
+  const rpc =
+    accept.chainId === 43113
+      ? "https://api.avax-test.network/ext/bc/C/rpc"
+      : "https://api.avax.network/ext/bc/C/rpc";
+
+  const account = privateKeyToAccount(normalizePrivateKey(pk));
+  const publicClient = createPublicClient({ chain, transport: http(rpc) });
+  const walletClient = createWalletClient({
+    account,
+    chain,
+    transport: http(rpc),
+  });
+
+  try {
+    const balance = await publicClient.readContract({
+      address: accept.asset,
+      abi: parseAbi([
+        "function balanceOf(address owner) view returns (uint256)",
+      ]),
+      functionName: "balanceOf",
+      args: [auth.from as `0x${string}`],
+    });
+    const need = BigInt(accept.amount);
+    if (balance < need) {
+      return {
+        ok: false,
+        reason: `Wallet ${auth.from} has ${balance} atomic XSGD on chain ${accept.chainId}, need ${need}. Fund Fuji test XSGD (sandbox) — mainnet XSGD will not pay the MCP card.`,
+      };
+    }
+
+    const sig = parseSignature(signature);
+    const hash = await walletClient.writeContract({
+      address: accept.asset,
+      abi: parseAbi([
+        "function transferWithAuthorization(address from, address to, uint256 value, uint256 validAfter, uint256 validBefore, bytes32 nonce, uint8 v, bytes32 r, bytes32 s)",
+      ]),
+      functionName: "transferWithAuthorization",
+      args: [
+        auth.from as `0x${string}`,
+        auth.to as `0x${string}`,
+        BigInt(auth.value),
+        BigInt(auth.validAfter),
+        BigInt(auth.validBefore),
+        auth.nonce as `0x${string}`,
+        Number(sig.v),
+        sig.r,
+        sig.s,
+      ],
+    });
+    await publicClient.waitForTransactionReceipt({ hash });
+    return { ok: true, txHash: hash };
+  } catch (err) {
+    return {
+      ok: false,
+      reason: err instanceof Error ? err.message : "on-chain EIP-3009 settle failed",
+    };
+  }
 }
 
 export async function issueCardViaMcp(opts: {
@@ -464,6 +550,12 @@ export async function issueCardViaMcp(opts: {
       throw new Error(
         `No amount in 402 accepts. body=${firstText.slice(0, 240)}`,
       );
+    }
+    if (!accept.chainId && accept.network === "eip155:43113") {
+      accept.chainId = 43113;
+    }
+    if (!accept.chainId && accept.network === "eip155:43114") {
+      accept.chainId = 43114;
     }
   } catch (err) {
     return {
@@ -584,6 +676,73 @@ export async function issueCardViaMcp(opts: {
 
     // Only rotate encodings on decode/header failures; other 402s (funds, sig) stop.
     if (!isBase64DecodeError(lastBody)) break;
+  }
+
+  // Facilitator often 500s on Fuji — settle EIP-3009 ourselves, then retry cardapi once.
+  const facilitatorFail = /facilitator|settle|execution reverted/i.test(lastBody);
+  if (facilitatorFail && lastStatus >= 500) {
+    const onChain = await broadcastTransferWithAuthorization(
+      accept,
+      signed.auth,
+      signed.signature,
+    );
+    if (!onChain.ok) {
+      return {
+        ok: false,
+        stage: "retry",
+        reason: `MCP facilitator failed; direct settle also failed: ${onChain.reason}`,
+        plan,
+        accept,
+      };
+    }
+
+    let second: Response;
+    try {
+      second = await fetch(issueUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "PAYMENT-SIGNATURE": signed.encoded,
+          "X-PAYMENT": signed.encoded,
+        },
+        body: JSON.stringify({
+          ...body,
+          payment_signature: signed.encoded,
+          settlement_tx: onChain.txHash,
+        }),
+      });
+    } catch (err) {
+      return {
+        ok: false,
+        stage: "retry",
+        reason: `Paid on-chain ${onChain.txHash} but cardapi unreachable: ${
+          err instanceof Error ? err.message : "error"
+        }`,
+        plan,
+        accept,
+      };
+    }
+
+    const retryBody = await second.text();
+    if (second.ok) {
+      try {
+        const card = JSON.parse(retryBody) as IssuedMcpCard;
+        if (card.card_opaque_id) {
+          if (!card.settlement_tx) card.settlement_tx = onChain.txHash;
+          return { ok: true, plan, accept, card, paid: true };
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+
+    return {
+      ok: false,
+      stage: "retry",
+      reason: `Paid on-chain (${onChain.txHash}) but cardapi still ${second.status}: ${retryBody.slice(0, 220)}. Open https://testnet.snowtrace.io/tx/${onChain.txHash}`,
+      plan,
+      accept,
+    };
   }
 
   return {

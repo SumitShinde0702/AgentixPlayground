@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 
 const URL_RE = /(https?:\/\/[^\s]+)/g;
 const TX_RE = /\b(0x[a-fA-F0-9]{64})\b/g;
+const RCPT_RE = /\b(rcpt_[a-zA-Z0-9]+)\b/g;
 
 function linkClass(tone?: "pass" | "block" | "mute") {
   if (tone === "block") return "underline underline-offset-2 text-[var(--block)]";
@@ -9,7 +11,7 @@ function linkClass(tone?: "pass" | "block" | "mute") {
   return "underline underline-offset-2 text-[var(--pass)]";
 }
 
-/** Turn http(s) URLs (and bare 0x tx hashes when snowtraceBase given) into anchors. */
+/** Turn http(s) URLs, receipt ids, and bare 0x tx hashes into anchors. */
 export function linkify(
   text: string,
   opts?: { snowtraceBase?: string; tone?: "pass" | "block" | "mute" },
@@ -21,9 +23,7 @@ export function linkify(
   let key = 0;
   while ((match = re.exec(text)) !== null) {
     if (match.index > last) {
-      parts.push(
-        linkifyTxes(text.slice(last, match.index), opts, key),
-      );
+      parts.push(linkifyInner(text.slice(last, match.index), opts, key));
       key += 10;
     }
     const href = match[1].replace(/[.,;:!?)]+$/, "");
@@ -42,6 +42,48 @@ export function linkify(
     if (trailing) parts.push(trailing);
     last = match.index + match[0].length;
   }
+  if (last < text.length) {
+    parts.push(linkifyInner(text.slice(last), opts, key));
+  }
+  return parts.length === 1 ? parts[0] : <>{parts}</>;
+}
+
+function linkifyInner(
+  text: string,
+  opts: { snowtraceBase?: string; tone?: "pass" | "block" | "mute" } | undefined,
+  keyBase: number,
+): ReactNode {
+  return linkifyReceipts(text, opts, keyBase);
+}
+
+function linkifyReceipts(
+  text: string,
+  opts: { snowtraceBase?: string; tone?: "pass" | "block" | "mute" } | undefined,
+  keyBase: number,
+): ReactNode {
+  const parts: ReactNode[] = [];
+  let last = 0;
+  const re = new RegExp(RCPT_RE.source, "g");
+  let match: RegExpExecArray | null;
+  let key = keyBase;
+  while ((match = re.exec(text)) !== null) {
+    if (match.index > last) {
+      parts.push(linkifyTxes(text.slice(last, match.index), opts, key));
+      key += 10;
+    }
+    const id = match[1];
+    parts.push(
+      <Link
+        key={`r-${key++}`}
+        href={`/audit/${id}`}
+        className={linkClass(opts?.tone)}
+      >
+        {id}
+      </Link>,
+    );
+    last = match.index + match[0].length;
+  }
+  if (last === 0) return linkifyTxes(text, opts, keyBase);
   if (last < text.length) {
     parts.push(linkifyTxes(text.slice(last), opts, key));
   }

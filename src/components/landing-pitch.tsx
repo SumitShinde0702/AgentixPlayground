@@ -104,28 +104,28 @@ function InjectionFix() {
 
       <div className="mt-8 grid grid-cols-2 gap-8 border-t border-white/10 pt-6">
         <div>
-          <p className="display text-[clamp(2.4rem,4vw,3.2rem)] leading-none text-[var(--paper)]">
-            77%
+          <p className="display text-[clamp(2.4rem,4vw,3.2rem)] leading-none text-[var(--block)]">
+            300
           </p>
           <p className="mt-2 text-[13px] leading-snug text-[var(--paper)]/55">
-            tasks solved with provable security (CaMeL)
+            successful prompt-injection attacks without CaMeL
           </p>
         </div>
         <div>
-          <p className="display text-[clamp(2.4rem,4vw,3.2rem)] leading-none text-[var(--paper)]/50">
-            84%
+          <p className="display text-[clamp(2.4rem,4vw,3.2rem)] leading-none text-[var(--paper)]">
+            0
           </p>
           <p className="mt-2 text-[13px] leading-snug text-[var(--paper)]/55">
-            same benchmark, undefended utility ceiling
+            with CaMeL on the same AgentDojo setup (Gemini 2.5 Pro)
           </p>
         </div>
       </div>
       <p className="mono mt-4 text-[11px] tracking-[0.12em] text-[var(--paper)]/40">
-        AgentDojo · Debenedetti et al. / Google DeepMind
+        AgentDojo · Debenedetti et al. / Google DeepMind · arXiv:2503.18813
       </p>
       <p className="mt-2 text-[13px] leading-relaxed text-[var(--paper)]/50">
-        Near undefended utility, with a security guarantee the undefended agent
-        lacks.
+        Attack success collapses; utility stays near the undefended ceiling
+        (77% tasks with provable security vs 84% undefended).
       </p>
 
       <ul className="mt-6 space-y-2 text-[14px] leading-relaxed text-[var(--paper)]/65">
