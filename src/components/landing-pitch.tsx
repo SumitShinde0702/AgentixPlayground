@@ -215,6 +215,11 @@ export function LandingPitch() {
               one-time cards, and sealed audit. Security on the path, not bolted
               on after.
             </p>
+            <p className="mt-4 max-w-[48ch] text-[15px] leading-relaxed text-[var(--paper)]/45">
+              The product is the gateway and skill. This UI is the control plane
+              and live proof — so you can watch the rail block, isolate, settle,
+              and seal.
+            </p>
             <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2">
               {rulePipeline.map((step, i) => (
                 <div key={step} className="flex items-center gap-3">

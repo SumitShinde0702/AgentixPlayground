@@ -5,6 +5,12 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import type { RunEvent } from "@/lib/run/types";
 import { DustTransferButton } from "@/components/dust-transfer";
+import {
+  DemoPhaseBriefing,
+  DemoWelcome,
+  shouldShowDemoWelcome,
+  type DemoPhase,
+} from "@/components/demo-briefing";
 import { linkify } from "@/components/linkify";
 
 const PHASES = [
@@ -61,7 +67,13 @@ export function DemoTheater() {
   const [receiptId, setReceiptId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [proof, setProof] = useState<ProofState>({});
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
+  const [briefingPhase, setBriefingPhase] = useState<DemoPhase | null>(null);
   const abort = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (shouldShowDemoWelcome()) setWelcomeOpen(true);
+  }, []);
 
   const push = (lane: "rogue" | "corporate", line: LogLine) => {
     if (lane === "rogue") setLeft((xs) => [...xs.slice(-14), line]);
@@ -292,21 +304,35 @@ export function DemoTheater() {
     [stream, refreshProofFromState],
   );
 
+  const requestPhase = useCallback((n: DemoPhase) => {
+    setBriefingPhase(n);
+  }, []);
+
+  const continuePhase = useCallback(() => {
+    if (briefingPhase == null) return;
+    const n = briefingPhase;
+    setBriefingPhase(null);
+    void runPhase(n);
+  }, [briefingPhase, runPhase]);
+
+  const overlayOpen = welcomeOpen || briefingPhase != null;
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "1") void runPhase(1);
-      if (e.key === "2") void runPhase(2);
-      if (e.key === "3") void runPhase(3);
-      if (e.key === "4") void runPhase(4);
+      if (overlayOpen) return;
+      if (e.key === "1") requestPhase(1);
+      if (e.key === "2") requestPhase(2);
+      if (e.key === "3") requestPhase(3);
+      if (e.key === "4") requestPhase(4);
       if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
-        const next = phase < 4 ? ((phase + 1) as 1 | 2 | 3 | 4) : 1;
-        void runPhase(next);
+        const next = phase < 4 ? ((phase + 1) as DemoPhase) : 1;
+        requestPhase(next);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [phase, runPhase]);
+  }, [phase, requestPhase, overlayOpen]);
 
   const tone =
     status === "BLOCK"
@@ -317,6 +343,12 @@ export function DemoTheater() {
 
   return (
     <div className="flex min-h-[100dvh] flex-col pt-16">
+      {welcomeOpen ? (
+        <DemoWelcome onEnter={() => setWelcomeOpen(false)} />
+      ) : null}
+      {briefingPhase != null ? (
+        <DemoPhaseBriefing phase={briefingPhase} onContinue={continuePhase} />
+      ) : null}
       <div className="flex items-end justify-between px-6 py-6 md:px-10">
         <p className="display text-[clamp(2.2rem,5vw,4.2rem)]">
           0{phase} {PHASES[phase - 1].label}
@@ -375,7 +407,7 @@ export function DemoTheater() {
           {PHASES.map((p) => (
             <button
               key={p.n}
-              onClick={() => void runPhase(p.n)}
+              onClick={() => requestPhase(p.n)}
               className={`mono h-9 w-9 text-[13px] ${
                 phase === p.n
                   ? "bg-[var(--ink)] text-[var(--paper)]"
