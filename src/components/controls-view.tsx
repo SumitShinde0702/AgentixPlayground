@@ -225,8 +225,11 @@ export function ControlsView() {
             Agents
           </p>
           <h2 className="display mt-3 text-[clamp(1.8rem,3.5vw,2.6rem)]">
-            Create. Expand. Set rails.
+            Your agents
           </h2>
+          <p className="mt-3 max-w-[36ch] text-[15px] text-[var(--ink)]/65">
+            Open an agent to set spend limits, approvals, and freeze.
+          </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
             <input
@@ -254,7 +257,8 @@ export function ControlsView() {
                   <button
                     type="button"
                     onClick={() => toggleExpand(p.agentId)}
-                    className="flex w-full items-center justify-between gap-4 py-5 text-left transition hover:bg-[var(--paper-deep)]/30"
+                    aria-expanded={open}
+                    className="flex w-full items-center justify-between gap-4 py-6 text-left transition hover:bg-[var(--paper-deep)]/30"
                   >
                     <div>
                       <p className="text-[1.25rem] font-medium tracking-tight">
@@ -273,8 +277,14 @@ export function ControlsView() {
                         {isActive ? " · demo active" : ""}
                       </p>
                     </div>
-                    <span className="mono text-[18px] text-[var(--mute)]">
-                      {open ? "−" : "+"}
+                    <span
+                      className={`shrink-0 border px-4 py-2.5 text-[12px] uppercase tracking-[0.14em] ${
+                        open
+                          ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)]"
+                          : "border-[var(--ink)] text-[var(--ink)]"
+                      }`}
+                    >
+                      {open ? "Close" : "Set controls"}
                     </span>
                   </button>
 
@@ -312,49 +322,8 @@ export function ControlsView() {
                         {p.did}
                       </p>
 
-                      {/* You can sleep */}
-                      <div className="mt-10">
-                        <p
-                          className={`display text-[clamp(1.6rem,3vw,2.2rem)] ${
-                            p.sleep.score >= 85
-                              ? "text-[var(--pass)]"
-                              : "text-[var(--ink)]"
-                          }`}
-                        >
-                          {sleepVerdict(p.sleep)}
-                        </p>
-                        <p className="mt-2 max-w-[40ch] text-[14px] text-[var(--ink)]/65">
-                          While you’re away, this agent stays inside these
-                          rails — or it’s frozen.
-                        </p>
-                        <details className="mt-4 text-[13px] text-[var(--mute)]">
-                          <summary className="cursor-pointer uppercase tracking-[0.12em]">
-                            Why
-                          </summary>
-                          <ul className="mt-3 space-y-2">
-                            {p.sleep.checks.map((c) => (
-                              <li
-                                key={c.id}
-                                className="flex justify-between gap-4 border-b border-[var(--line)] pb-2"
-                              >
-                                <span>{c.label}</span>
-                                <span
-                                  className={
-                                    c.ok
-                                      ? "text-[var(--pass)]"
-                                      : "text-[var(--block)]"
-                                  }
-                                >
-                                  {c.ok ? "ok" : "gap"}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </details>
-                      </div>
-
-                      {/* Natural language */}
-                      <div className="mt-10">
+                      {/* Natural language — above number controls */}
+                      <div className="mt-8">
                         <p className="text-[11px] uppercase tracking-[0.16em] text-[var(--mute)]">
                           Natural language
                         </p>
@@ -420,11 +389,11 @@ export function ControlsView() {
                         ) : null}
                       </div>
 
-                      {/* Fine-tune */}
-                      <details className="mt-10 border-t border-[var(--line)] pt-6">
-                        <summary className="cursor-pointer text-[11px] uppercase tracking-[0.16em] text-[var(--mute)]">
-                          Fine-tune numbers
-                        </summary>
+                      {/* Controls */}
+                      <div className="mt-10 border-t border-[var(--line)] pt-8">
+                        <p className="text-[11px] uppercase tracking-[0.16em] text-[var(--mute)]">
+                          Controls
+                        </p>
                         <div className="mt-6 grid gap-6 sm:grid-cols-2">
                           {(
                             [
@@ -523,7 +492,48 @@ export function ControlsView() {
                             {p.spend.hourTxCount} tx
                           </p>
                         ) : null}
-                      </details>
+                      </div>
+
+                      {/* You can sleep */}
+                      <div className="mt-10 border-t border-[var(--line)] pt-8">
+                        <p
+                          className={`display text-[clamp(1.6rem,3vw,2.2rem)] ${
+                            p.sleep.score >= 85
+                              ? "text-[var(--pass)]"
+                              : "text-[var(--ink)]"
+                          }`}
+                        >
+                          {sleepVerdict(p.sleep)}
+                        </p>
+                        <p className="mt-2 max-w-[40ch] text-[14px] text-[var(--ink)]/65">
+                          While you’re away, this agent stays inside these
+                          rails — or it’s frozen.
+                        </p>
+                        <details className="mt-4 text-[13px] text-[var(--mute)]">
+                          <summary className="cursor-pointer uppercase tracking-[0.12em]">
+                            Why
+                          </summary>
+                          <ul className="mt-3 space-y-2">
+                            {p.sleep.checks.map((c) => (
+                              <li
+                                key={c.id}
+                                className="flex justify-between gap-4 border-b border-[var(--line)] pb-2"
+                              >
+                                <span>{c.label}</span>
+                                <span
+                                  className={
+                                    c.ok
+                                      ? "text-[var(--pass)]"
+                                      : "text-[var(--block)]"
+                                  }
+                                >
+                                  {c.ok ? "ok" : "gap"}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </details>
+                      </div>
                     </div>
                   ) : null}
                 </li>
