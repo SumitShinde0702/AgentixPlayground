@@ -19,7 +19,7 @@ const pitch = [
   {
     id: "skill",
     title: "Skill",
-    body: "Equip Secure-Procure. Outside agents must settle through your gateway — policy first, then one-time card.",
+    body: "Yes — a skill for your own AI. Equip Secure-Procure; outside agents settle through your gateway — policy first, then one-time card.",
   },
   {
     id: "identity",
@@ -191,12 +191,64 @@ const stickyContent = [
   },
 ];
 
+const rulePipeline = [
+  "Policy",
+  "check_spend",
+  "request_pay",
+  "Receipt",
+] as const;
+
 export function LandingPitch() {
   return (
     <div className="bg-[#0c1218] text-[var(--paper)]">
       <div className="px-5 py-24 md:px-8 md:py-32 lg:px-10">
         <TracingBeam>
           <section className="pb-20 md:pb-28">
+            <p className="mono text-[11px] uppercase tracking-[0.18em] text-[var(--paper)]/45">
+              Out of the box
+            </p>
+            <ScrollReveal textClassName="display mt-4 text-[clamp(2.6rem,5.5vw,5rem)] text-[var(--paper)] leading-[0.95]">
+              Spend governance. Built in.
+            </ScrollReveal>
+            <p className="mt-6 max-w-[48ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
+              A rule machine for agent purchases — policy, identity, isolation,
+              one-time cards, and sealed audit. Security on the path, not bolted
+              on after.
+            </p>
+            <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2">
+              {rulePipeline.map((step, i) => (
+                <div key={step} className="flex items-center gap-3">
+                  {i > 0 ? (
+                    <span
+                      className="text-[var(--paper)]/25"
+                      aria-hidden
+                    >
+                      →
+                    </span>
+                  ) : null}
+                  <span className="mono text-[12px] tracking-[0.12em] text-[var(--paper)]/70">
+                    {step}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Link
+                href="/controls"
+                className="inline-flex items-center border border-white/20 px-5 py-3 text-[13px] uppercase tracking-[0.14em] text-[var(--paper)]/80 transition hover:border-white/50 hover:text-[var(--paper)]"
+              >
+                Set the rules
+              </Link>
+              <Link
+                href="/demo"
+                className="inline-flex items-center text-[13px] uppercase tracking-[0.14em] text-[var(--paper)]/55 transition hover:text-[var(--paper)]"
+              >
+                See it live →
+              </Link>
+            </div>
+          </section>
+
+          <section className="border-t border-white/10 py-20 md:py-28">
             <ScrollReveal textClassName="display text-[clamp(2.6rem,5.5vw,5rem)] text-[var(--paper)] leading-[0.95]">
               The gaps. Closed on this rail.
             </ScrollReveal>
@@ -261,11 +313,12 @@ export function LandingPitch() {
             <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-16">
               <div>
                 <ScrollReveal textClassName="display text-[clamp(2.6rem,5.5vw,5rem)] text-[var(--paper)] leading-[0.95]">
-                  Equip the skill.
+                  Yes — a skill for your own AI.
                 </ScrollReveal>
                 <p className="mt-6 max-w-[36ch] text-[17px] leading-relaxed text-[var(--paper)]/65">
-                  Other agents download Secure-Procure. Every purchase hits your
-                  gateway — check, pay, receipt — so spend never skips policy.
+                  Drop Secure-Procure into Cursor (or any agent that reads skills).
+                  Their buys hit your gateway — check, pay, receipt — so spend never
+                  skips your policy.
                 </p>
               </div>
               <SkillTerminalDemo />

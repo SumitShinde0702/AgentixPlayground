@@ -10,11 +10,12 @@ export default function SkillPage() {
           Agent skill
         </p>
         <h1 className="display mt-4 text-[clamp(2.6rem,6vw,4.2rem)]">
-          Equip Secure-Procure.
+          Yes — a skill for your own AI.
         </h1>
         <p className="mt-6 max-w-[42ch] text-[17px] leading-relaxed text-[var(--ink)]/70">
-          Drop this skill into Cursor. When an agent buys, it must call your
-          gateway — policy, one-time XSGD card, sealed receipt. No bypass.
+          Drop Secure-Procure into Cursor (or any agent that reads skills). When
+          it buys, it must call your gateway — policy, one-time XSGD card, sealed
+          receipt. No bypass.
         </p>
 
         <div className="mt-10 flex flex-wrap gap-4">
