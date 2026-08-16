@@ -114,60 +114,48 @@ export function DemoWelcome({ onEnter }: { onEnter: () => void }) {
   return (
     <OverlayShell onDismiss={onEnter}>
       <p className="mono text-[11px] uppercase tracking-[0.18em] text-[var(--mute)]">
-        Desk · live rail
+        GateX · live demo
       </p>
       <h2 className="display mt-3 text-[clamp(2.2rem,5vw,3.4rem)] leading-[0.95]">
-        You hold the keys.
+        Welcome.
       </h2>
       <p className="mt-5 text-[16px] leading-relaxed text-[var(--ink)]/75">
-        Two agents. One mandate. GateX is the rail between them. It can block,
-        isolate, settle, and seal. This UI exists so you can watch that happen
-        live.
+        GateX is spend-governance infrastructure for AI agents — policy,
+        identity, isolation, one-time cards, and sealed audit. This UI is the
+        control plane and live proof that the rail works.
       </p>
 
-      <div className="mt-8 grid gap-5 border-t border-[var(--line)] pt-6 md:grid-cols-2">
-        <div>
-          <p className="mono text-[11px] uppercase tracking-[0.16em] text-[var(--block)]">
-            Rogue
-          </p>
-          <p className="mt-2 text-[15px] leading-relaxed text-[var(--ink)]/70">
-            An unsigned outsider with the same purchase story and no registry
-            seat. Beat <span className="mono text-[13px]">1</span> should stop
-            them cold.
-          </p>
-        </div>
-        <div>
-          <p className="mono text-[11px] uppercase tracking-[0.16em] text-[var(--pass)]">
-            Corporate
-          </p>
-          <p className="mt-2 text-[15px] leading-relaxed text-[var(--ink)]/70">
-            The named buyer on the mandate. They survive identity, then earn a
-            one-time card. They never get a standing wallet.
-          </p>
-        </div>
+      <div className="mt-8 border-t border-[var(--line)] pt-6">
+        <p className="mono text-[11px] uppercase tracking-[0.16em] text-[var(--mute)]">
+          How to run it
+        </p>
+        <p className="mt-2 text-[15px] leading-relaxed text-[var(--ink)]/75">
+          Press{" "}
+          <span className="mono text-[13px] text-[var(--ink)]">Space</span>{" "}
+          (or{" "}
+          <span className="mono text-[13px] text-[var(--ink)]">Enter</span>) to
+          move to the next governance step. Each step opens a short briefing,
+          then runs live: identity → injection → execute → audit.
+        </p>
+        <p className="mt-3 text-[14px] leading-relaxed text-[var(--ink)]/55">
+          Keys{" "}
+          <span className="mono text-[12px]">1</span>–
+          <span className="mono text-[12px]">4</span> jump to a specific beat.
+          Same key re-runs that beat.
+        </p>
       </div>
 
       <p className="mt-6 text-[14px] leading-relaxed text-[var(--ink)]/55">
-        You are the human on desk. You can{" "}
+        Set spend rules anytime under{" "}
         <Link
           href="/controls"
           className="text-[var(--ink)]/80 underline-offset-2 hover:underline"
         >
-          Set the rules
-        </Link>{" "}
-        anytime. Theater proves the agents obey them.
+          Controls
+        </Link>
+        . The theater shows agents obeying them.
       </p>
 
-      <p className="mt-5 border-l-2 border-[var(--line)] pl-4 text-[13px] leading-relaxed text-[var(--mute)]">
-        Receipt tip. Key <span className="mono">1</span> seals a short block.
-        After keys <span className="mono">3</span> and{" "}
-        <span className="mono">4</span>, open the authorized receipt for the
-        full chain. Do not mix them.
-      </p>
-
-      <p className="mono mt-6 text-[11px] uppercase tracking-[0.14em] text-[var(--mute)]">
-        1 → 2 → 3 → 4 · briefing first · same key re-runs that beat
-      </p>
       <HowWeProveDisclosure />
       <div className="mt-8 flex flex-wrap items-center gap-4">
         <button
@@ -175,7 +163,7 @@ export function DemoWelcome({ onEnter }: { onEnter: () => void }) {
           onClick={onEnter}
           className="border border-[var(--ink)] bg-[var(--ink)] px-5 py-3 text-[12px] uppercase tracking-[0.14em] text-[var(--paper)]"
         >
-          Take the desk
+          Start the demo
         </button>
         <Link
           href="/controls"
@@ -232,6 +220,19 @@ export function DemoPhaseBriefing({
         <p className="mt-2 text-[15px] leading-relaxed text-[var(--ink)]/75">
           {copy.howWeTest}
         </p>
+        {phase === 2 ? (
+          <p className="mt-4 text-[14px] leading-relaxed text-[var(--ink)]/60">
+            Here is the supplier page:{" "}
+            <Link
+              href="/supplier"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--ink)] underline-offset-2 hover:underline"
+            >
+              /supplier
+            </Link>
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-6 border-t border-[var(--line)] pt-6">

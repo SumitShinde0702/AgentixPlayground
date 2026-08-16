@@ -275,51 +275,56 @@ export function DemoTheater() {
       if (n === 4) {
         abort.current?.abort();
         abort.current = null;
-        await refreshProofFromState();
-        const res = await fetch("/api/state");
-        const data = (await res.json()) as {
-          console: { receipt: { id: string | null; head: string | null } };
-          card: { last4?: string; status?: string } | null;
-          settlement: { source?: string; txHash?: string } | null;
-        };
-        const id = data.console.receipt.id;
-        setReceiptId(id);
-        push("corporate", {
-          text: `Receipt ${id ?? "pending"}`,
-          status: "PASS",
-        });
-        push("corporate", {
-          text: `Card ····${data.card?.last4 ?? "—"} ${data.card?.status ?? ""}`,
-          status: "PASS",
-        });
-        push("corporate", {
-          text: `Chain ${data.console.receipt.head?.slice(0, 16) ?? "—"}…`,
-          status: "PASS",
-        });
-        if (data.settlement?.source) {
+        setBusy(true);
+        try {
+          await refreshProofFromState();
+          const res = await fetch("/api/state");
+          const data = (await res.json()) as {
+            console: { receipt: { id: string | null; head: string | null } };
+            card: { last4?: string; status?: string } | null;
+            settlement: { source?: string; txHash?: string } | null;
+          };
+          const id = data.console.receipt.id;
+          setReceiptId(id);
           push("corporate", {
-            text: `Settlement ${data.settlement.source} · ${(data.settlement.txHash ?? "").slice(0, 14)}…`,
+            text: `Receipt ${id ?? "pending"}`,
             status: "PASS",
           });
-        }
-        setStatus("PASS");
-        let blocked = false;
-        if (id) {
-          try {
-            const auditRes = await fetch(`/api/audit/${id}`);
-            if (auditRes.ok) {
-              const log = (await auditRes.json()) as {
-                chain?: { event: { detail?: { blocked?: boolean } } }[];
-              };
-              const last = log.chain?.[log.chain.length - 1];
-              blocked = Boolean(last?.event?.detail?.blocked);
-            }
-          } catch {
-            /* ignore */
+          push("corporate", {
+            text: `Card ····${data.card?.last4 ?? "—"} ${data.card?.status ?? ""}`,
+            status: "PASS",
+          });
+          push("corporate", {
+            text: `Chain ${data.console.receipt.head?.slice(0, 16) ?? "—"}…`,
+            status: "PASS",
+          });
+          if (data.settlement?.source) {
+            push("corporate", {
+              text: `Settlement ${data.settlement.source} · ${(data.settlement.txHash ?? "").slice(0, 14)}…`,
+              status: "PASS",
+            });
           }
+          setStatus("PASS");
+          let blocked = false;
+          if (id) {
+            try {
+              const auditRes = await fetch(`/api/audit/${id}`);
+              if (auditRes.ok) {
+                const log = (await auditRes.json()) as {
+                  chain?: { event: { detail?: { blocked?: boolean } } }[];
+                };
+                const last = log.chain?.[log.chain.length - 1];
+                blocked = Boolean(last?.event?.detail?.blocked);
+              }
+            } catch {
+              /* ignore */
+            }
+          }
+          setCompleteBlocked(blocked);
+          setCompleteOpen(true);
+        } finally {
+          setBusy(false);
         }
-        setCompleteBlocked(blocked);
-        setCompleteOpen(true);
       }
     },
     [stream, refreshProofFromState],
@@ -342,7 +347,7 @@ export function DemoTheater() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (overlayOpen) return;
+      if (overlayOpen || busy) return;
       if (e.key === "1") requestPhase(1);
       if (e.key === "2") requestPhase(2);
       if (e.key === "3") requestPhase(3);
@@ -359,7 +364,7 @@ export function DemoTheater() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [phase, requestPhase, overlayOpen, receiptId]);
+  }, [phase, requestPhase, overlayOpen, receiptId, busy]);
 
   const tone =
     status === "BLOCK"
@@ -368,10 +373,24 @@ export function DemoTheater() {
         ? "text-[var(--pass)]"
         : "text-[var(--mute)]";
 
+  const loadingLabel =
+    phase === 1
+      ? "Checking identity…"
+      : phase === 2
+        ? "Isolating page text…"
+        : phase === 3
+          ? "Policy, one-time card & settlement…"
+          : "Sealing receipt…";
+
   return (
     <div className="flex min-h-[100dvh] flex-col pt-16">
       {welcomeOpen ? (
-        <DemoWelcome onEnter={() => setWelcomeOpen(false)} />
+        <DemoWelcome
+          onEnter={() => {
+            setWelcomeOpen(false);
+            requestPhase(1);
+          }}
+        />
       ) : null}
       {briefingPhase != null ? (
         <DemoPhaseBriefing phase={briefingPhase} onContinue={continuePhase} />
@@ -388,14 +407,32 @@ export function DemoTheater() {
           0{phase} {PHASES[phase - 1].label}
         </p>
         <motion.p
-          key={status || "idle"}
+          key={status || (busy ? "busy" : "idle")}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className={`display text-[clamp(2.2rem,5vw,4.2rem)] ${tone}`}
         >
-          {status || (busy ? "…" : "")}
+          {status || (busy ? "WAIT" : "")}
         </motion.p>
       </div>
+      {busy ? (
+        <div
+          className="flex items-center gap-3 border-t border-[var(--line)] bg-[var(--ink)] px-6 py-3 text-[var(--paper)] md:px-10"
+          role="status"
+          aria-live="polite"
+        >
+          <span
+            className="inline-block h-2 w-2 shrink-0 animate-pulse rounded-full bg-[var(--paper)]"
+            aria-hidden
+          />
+          <p className="mono text-[12px] uppercase tracking-[0.14em]">
+            Running · {loadingLabel}
+          </p>
+          <p className="mono ml-auto hidden text-[11px] uppercase tracking-[0.12em] text-[var(--paper)]/55 sm:block">
+            Space locked until this step finishes
+          </p>
+        </div>
+      ) : null}
       <div className="relative grid min-h-0 flex-1 grid-cols-1 border-t border-[var(--line)] md:grid-cols-2">
         {phase === 2 ? (
           <motion.div
@@ -410,30 +447,38 @@ export function DemoTheater() {
           title="Rogue"
           lines={left}
           accent="block"
+          loading={busy && phase === 1}
           idle={
-            phase === 1
-              ? "Press 1 — challenge rogue"
-              : phase === 3
-                ? "Key 3 runs Authorized only"
-                : "Waiting"
+            busy && phase === 1
+              ? loadingLabel
+              : phase === 1
+                ? "Press 1 — challenge rogue"
+                : phase === 3
+                  ? "Key 3 runs Authorized only"
+                  : "Waiting"
           }
         />
         <Lane
           title="Authorized"
           lines={right}
           accent="pass"
+          loading={busy && (phase === 2 || phase === 3 || phase === 4)}
           idle={
-            phase === 1
-              ? "Waits here — press 3 for the authorized buy"
-              : phase === 3
-                ? "Press 3 — authorized run"
-                : "Waiting"
+            busy && (phase === 2 || phase === 3 || phase === 4)
+              ? loadingLabel
+              : phase === 1
+                ? "Waits here — press 3 for the authorized buy"
+                : phase === 3
+                  ? "Press 3 — authorized run"
+                  : "Waiting"
           }
         />
       </div>
       <ProofPanel
         phase={phase}
         proof={proof}
+        busy={busy}
+        loadingLabel={loadingLabel}
         onChainSettled={() => void refreshProofFromState()}
       />
       <div className="flex items-center justify-between gap-4 border-t border-[var(--line)] px-6 py-4 md:px-10">
@@ -441,8 +486,10 @@ export function DemoTheater() {
           {PHASES.map((p) => (
             <button
               key={p.n}
+              type="button"
+              disabled={busy}
               onClick={() => requestPhase(p.n)}
-              className={`mono h-9 w-9 text-[13px] ${
+              className={`mono h-9 w-9 text-[13px] disabled:cursor-not-allowed disabled:opacity-40 ${
                 phase === p.n
                   ? "bg-[var(--ink)] text-[var(--paper)]"
                   : "border border-[var(--line)] text-[var(--ink)]"
@@ -452,10 +499,10 @@ export function DemoTheater() {
             </button>
           ))}
           <span className="mono ml-3 self-center text-[11px] uppercase tracking-[0.16em] text-[var(--mute)]">
-            space
+            {busy ? "locked" : "space"}
           </span>
         </div>
-        {receiptId ? (
+        {receiptId && !busy ? (
           <Link
             href={`/audit/${receiptId}`}
             className="text-[12px] uppercase tracking-[0.14em] text-[var(--ink)]"
@@ -464,7 +511,7 @@ export function DemoTheater() {
           </Link>
         ) : (
           <span className="text-[12px] uppercase tracking-[0.14em] text-[var(--mute)]">
-            {busy ? "Running" : "Press 1"}
+            {busy ? "Running…" : "Press Space"}
           </span>
         )}
       </div>
@@ -475,10 +522,14 @@ export function DemoTheater() {
 function ProofPanel({
   phase,
   proof,
+  busy,
+  loadingLabel,
   onChainSettled,
 }: {
   phase: 1 | 2 | 3 | 4;
   proof: ProofState;
+  busy?: boolean;
+  loadingLabel?: string;
   onChainSettled?: () => void;
 }) {
   return (
@@ -486,6 +537,11 @@ function ProofPanel({
       <p className="mb-3 text-[11px] uppercase tracking-[0.18em] text-[var(--mute)]">
         Evidence
       </p>
+      {busy ? (
+        <p className="mono animate-pulse text-[12px] text-[var(--mute)]">
+          {loadingLabel ?? "Running…"}
+        </p>
+      ) : null}
       {phase === 1 && proof.identity ? (
         <div className="grid gap-4 md:grid-cols-2">
           <EvidenceBlock
@@ -677,17 +733,17 @@ function ProofPanel({
           ) : null}
         </div>
       ) : null}
-      {!proof.identity && !proof.injection && phase === 1 ? (
+      {!busy && !proof.identity && !proof.injection && phase === 1 ? (
         <p className="mono text-[12px] text-[var(--mute)]">
           Press 1 — rogue DID vs registry (Authorized stays idle)
         </p>
       ) : null}
-      {phase === 2 && !proof.injection ? (
+      {!busy && phase === 2 && !proof.injection ? (
         <p className="mono text-[12px] text-[var(--mute)]">
           Press 2 — side-by-side quarantine proof
         </p>
       ) : null}
-      {phase === 3 && !proof.execute ? (
+      {!busy && phase === 3 && !proof.execute ? (
         <p className="mono text-[12px] text-[var(--mute)]">
           Press 3 — mandate, card, live XSGD
         </p>
@@ -747,15 +803,17 @@ function Lane({
   lines,
   accent,
   idle = "Waiting",
+  loading = false,
 }: {
   title: string;
   lines: LogLine[];
   accent: "block" | "pass";
   idle?: string;
+  loading?: boolean;
 }) {
   const color = accent === "block" ? "var(--block)" : "var(--pass)";
   return (
-    <section className="flex flex-col border-[var(--line)] px-6 py-6 md:px-10 md:[&:last-child]:border-l">
+    <section className="relative flex flex-col border-[var(--line)] px-6 py-6 md:px-10 md:[&:last-child]:border-l">
       <p
         className="mb-6 text-[11px] uppercase tracking-[0.18em]"
         style={{ color }}
@@ -764,7 +822,9 @@ function Lane({
       </p>
       <ul className="mono space-y-2 text-[12.5px] leading-relaxed text-[var(--ink)]">
         {lines.length === 0 ? (
-          <li className="text-[var(--mute)]">{idle}</li>
+          <li className={loading ? "animate-pulse text-[var(--mute)]" : "text-[var(--mute)]"}>
+            {idle}
+          </li>
         ) : (
           lines.map((l, i) => (
             <li
@@ -791,6 +851,9 @@ function Lane({
             </li>
           ))
         )}
+        {loading && lines.length > 0 ? (
+          <li className="animate-pulse text-[var(--mute)]">Still running…</li>
+        ) : null}
       </ul>
     </section>
   );
