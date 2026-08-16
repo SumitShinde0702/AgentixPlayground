@@ -38,6 +38,7 @@ Keep empty in `.env.local`: `STRAITSX_API_KEY`, `STRAITSX_ISSUING_PLAN_ID`, `STR
 
 ## Internal
 
+- **Live deploy:** https://main.db3ju8bxs5af1.amplifyapp.com/
 - Env template: [`.env.example`](.env.example) — `STRAITSX_CARD_MCP_URL`
 - MCP probe log (local): [`mcp-out.txt`](mcp-out.txt)
 - Dev Hub (Notion, may need login): https://app.notion.com/p/convergencesummit/AgentiX-Playground-Dev-Hub-3b354aa8ea60806e80acd3c1a43b019f
